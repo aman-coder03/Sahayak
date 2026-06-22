@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>SAHAYAK — Architecture Diagram</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0a0c10;font-family:'Inter',system-ui,sans-serif;color:#e8eaf0;padding:32px}
+h1{font-size:18px;font-weight:600;margin-bottom:4px}
+.sub{font-size:12px;color:#7a7f8e;margin-bottom:28px}
+svg{width:100%;height:auto;display:block}
+</style>
+</head>
+<body>
+<h1>SAHAYAK — Digital Public Safety Intelligence Platform</h1>
+<div class="sub">Architecture Diagram · ET AI Hackathon 2026 · Problem Statement 6</div>
+
+<svg viewBox="0 0 1100 820" xmlns="http://www.w3.org/2000/svg" font-family="Inter,system-ui,sans-serif">
+<defs>
+  <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+    <path d="M1 2L8 5L1 8" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </marker>
+</defs>
+
+<!-- ══ LAYER LABELS ══ -->
+<text x="18" y="82" font-size="10" fill="#3b82f6" font-weight="600" text-anchor="middle" transform="rotate(-90,18,82)">DATA SOURCES</text>
+<text x="18" y="218" font-size="10" fill="#8b5cf6" font-weight="600" text-anchor="middle" transform="rotate(-90,18,218)">INGESTION</text>
+<text x="18" y="390" font-size="10" fill="#f59e0b" font-weight="600" text-anchor="middle" transform="rotate(-90,18,390)">AI ENGINES</text>
+<text x="18" y="590" font-size="10" fill="#22c55e" font-weight="600" text-anchor="middle" transform="rotate(-90,18,590)">PLATFORM</text>
+<text x="18" y="748" font-size="10" fill="#e8eaf0" font-weight="600" text-anchor="middle" transform="rotate(-90,18,748)">CONSUMERS</text>
+
+<!-- ══ ROW 1 — DATA SOURCES ══ -->
+<!-- Telecom CDRs -->
+<rect x="40" y="30" width="130" height="50" rx="8" fill="#111318" stroke="#3b82f6" stroke-width="1" stroke-opacity=".5"/>
+<text x="105" y="52" text-anchor="middle" font-size="11" font-weight="600" fill="#93c5fd">Telecom CDRs</text>
+<text x="105" y="67" text-anchor="middle" font-size="10" fill="#7a7f8e">DoT / TRAI feed</text>
+
+<!-- UPI/Bank Txn -->
+<rect x="200" y="30" width="130" height="50" rx="8" fill="#111318" stroke="#3b82f6" stroke-width="1" stroke-opacity=".5"/>
+<text x="265" y="52" text-anchor="middle" font-size="11" font-weight="600" fill="#93c5fd">UPI/Bank Txn</text>
+<text x="265" y="67" text-anchor="middle" font-size="10" fill="#7a7f8e">FIU-IND / NPCI</text>
+
+<!-- NCRB Complaints -->
+<rect x="360" y="30" width="130" height="50" rx="8" fill="#111318" stroke="#3b82f6" stroke-width="1" stroke-opacity=".5"/>
+<text x="425" y="52" text-anchor="middle" font-size="11" font-weight="600" fill="#93c5fd">NCRB Complaints</text>
+<text x="425" y="67" text-anchor="middle" font-size="10" fill="#7a7f8e">cybercrime.gov.in</text>
+
+<!-- Currency Images -->
+<rect x="520" y="30" width="130" height="50" rx="8" fill="#111318" stroke="#3b82f6" stroke-width="1" stroke-opacity=".5"/>
+<text x="585" y="52" text-anchor="middle" font-size="11" font-weight="600" fill="#93c5fd">Currency Images</text>
+<text x="585" y="67" text-anchor="middle" font-size="10" fill="#7a7f8e">Bank scanners / mobile</text>
+
+<!-- Social / WhatsApp -->
+<rect x="680" y="30" width="130" height="50" rx="8" fill="#111318" stroke="#3b82f6" stroke-width="1" stroke-opacity=".5"/>
+<text x="745" y="52" text-anchor="middle" font-size="11" font-weight="600" fill="#93c5fd">Social / WhatsApp</text>
+<text x="745" y="67" text-anchor="middle" font-size="10" fill="#7a7f8e">Meta API / IVR</text>
+
+<!-- Citizen Reports -->
+<rect x="840" y="30" width="130" height="50" rx="8" fill="#111318" stroke="#3b82f6" stroke-width="1" stroke-opacity=".5"/>
+<text x="905" y="52" text-anchor="middle" font-size="11" font-weight="600" fill="#93c5fd">Citizen Reports</text>
+<text x="905" y="67" text-anchor="middle" font-size="10" fill="#7a7f8e">1930 / app</text>
+
+<!-- ══ INGESTION BUS ══ -->
+<rect x="40" y="120" width="930" height="46" rx="8" fill="#111318" stroke="#8b5cf6" stroke-width="1" stroke-opacity=".6"/>
+<text x="505" y="138" text-anchor="middle" font-size="11" font-weight="600" fill="#c4b5fd">Unified Ingestion Bus</text>
+<text x="505" y="155" text-anchor="middle" font-size="10" fill="#7a7f8e">Apache Kafka · schema validation · PII masking · dedup · rate limiting · audit log</text>
+
+<!-- arrows data → bus -->
+<line x1="105" y1="80" x2="105" y2="120" stroke="#3b82f6" stroke-width="1" stroke-opacity=".5" marker-end="url(#arr)"/>
+<line x1="265" y1="80" x2="265" y2="120" stroke="#3b82f6" stroke-width="1" stroke-opacity=".5" marker-end="url(#arr)"/>
+<line x1="425" y1="80" x2="425" y2="120" stroke="#3b82f6" stroke-width="1" stroke-opacity=".5" marker-end="url(#arr)"/>
+<line x1="585" y1="80" x2="585" y2="120" stroke="#3b82f6" stroke-width="1" stroke-opacity=".5" marker-end="url(#arr)"/>
+<line x1="745" y1="80" x2="745" y2="120" stroke="#3b82f6" stroke-width="1" stroke-opacity=".5" marker-end="url(#arr)"/>
+<line x1="905" y1="80" x2="905" y2="120" stroke="#3b82f6" stroke-width="1" stroke-opacity=".5" marker-end="url(#arr)"/>
+
+<!-- ══ ROW 3 — AI ENGINES ══ -->
+
+<!-- ENGINE 1: Scam NLP -->
+<rect x="40" y="210" width="200" height="130" rx="10" fill="#111318" stroke="#f59e0b" stroke-width="1.5"/>
+<rect x="40" y="210" width="200" height="28" rx="10" fill="#451a03" stroke="none"/>
+<rect x="40" y="224" width="200" height="14" rx="0" fill="#451a03" stroke="none"/>
+<text x="140" y="229" text-anchor="middle" font-size="11" font-weight="600" fill="#fcd34d">① Scam NLP Classifier</text>
+<text x="140" y="252" text-anchor="middle" font-size="10" fill="#d1d5db">BERT fine-tuned</text>
+<text x="140" y="267" text-anchor="middle" font-size="10" fill="#7a7f8e">40k scam transcripts</text>
+<text x="140" y="285" text-anchor="middle" font-size="10" fill="#d1d5db">LLM for explanation</text>
+<text x="140" y="300" text-anchor="middle" font-size="10" fill="#7a7f8e">Claude Sonnet 4.6</text>
+<text x="140" y="318" text-anchor="middle" font-size="10" fill="#7a7f8e">Precision: 94% | Recall: 91%</text>
+<text x="140" y="333" text-anchor="middle" font-size="9" fill="#f59e0b">NLP / LLM</text>
+
+<!-- ENGINE 2: Graph AI -->
+<rect x="270" y="210" width="200" height="130" rx="10" fill="#111318" stroke="#f59e0b" stroke-width="1.5"/>
+<rect x="270" y="210" width="200" height="28" rx="10" fill="#451a03" stroke="none"/>
+<rect x="270" y="224" width="200" height="14" rx="0" fill="#451a03" stroke="none"/>
+<text x="370" y="229" text-anchor="middle" font-size="11" font-weight="600" fill="#fcd34d">② Fraud Network Graph</text>
+<text x="370" y="252" text-anchor="middle" font-size="10" fill="#d1d5db">Neo4j GDS</text>
+<text x="370" y="267" text-anchor="middle" font-size="10" fill="#7a7f8e">Louvain clustering</text>
+<text x="370" y="285" text-anchor="middle" font-size="10" fill="#d1d5db">PageRank centrality</text>
+<text x="370" y="300" text-anchor="middle" font-size="10" fill="#7a7f8e">Community detection</text>
+<text x="370" y="318" text-anchor="middle" font-size="10" fill="#7a7f8e">Link prediction · GNN</text>
+<text x="370" y="333" text-anchor="middle" font-size="9" fill="#f59e0b">Graph AI / Network Analysis</text>
+
+<!-- ENGINE 3: CV Counterfeit -->
+<rect x="500" y="210" width="200" height="130" rx="10" fill="#111318" stroke="#f59e0b" stroke-width="1.5"/>
+<rect x="500" y="210" width="200" height="28" rx="10" fill="#451a03" stroke="none"/>
+<rect x="500" y="224" width="200" height="14" rx="0" fill="#451a03" stroke="none"/>
+<text x="600" y="229" text-anchor="middle" font-size="11" font-weight="600" fill="#fcd34d">③ CV Counterfeit Detect</text>
+<text x="600" y="252" text-anchor="middle" font-size="10" fill="#d1d5db">YOLOv8 + ViT-B/16</text>
+<text x="600" y="267" text-anchor="middle" font-size="10" fill="#7a7f8e">Microprint analysis</text>
+<text x="600" y="285" text-anchor="middle" font-size="10" fill="#d1d5db">Security thread / UV sim</text>
+<text x="600" y="300" text-anchor="middle" font-size="10" fill="#7a7f8e">Serial number validation</text>
+<text x="600" y="318" text-anchor="middle" font-size="10" fill="#7a7f8e">Acc: 97.3% across denoms</text>
+<text x="600" y="333" text-anchor="middle" font-size="9" fill="#f59e0b">Computer Vision</text>
+
+<!-- ENGINE 4: Geospatial -->
+<rect x="730" y="210" width="200" height="130" rx="10" fill="#111318" stroke="#f59e0b" stroke-width="1.5"/>
+<rect x="730" y="210" width="200" height="28" rx="10" fill="#451a03" stroke="none"/>
+<rect x="730" y="224" width="200" height="14" rx="0" fill="#451a03" stroke="none"/>
+<text x="830" y="229" text-anchor="middle" font-size="11" font-weight="600" fill="#fcd34d">④ Geospatial Intelligence</text>
+<text x="830" y="252" text-anchor="middle" font-size="10" fill="#d1d5db">DBSCAN clustering</text>
+<text x="830" y="267" text-anchor="middle" font-size="10" fill="#7a7f8e">PostGIS · H3 hexgrids</text>
+<text x="830" y="285" text-anchor="middle" font-size="10" fill="#d1d5db">Patrol route optimisation</text>
+<text x="830" y="300" text-anchor="middle" font-size="10" fill="#7a7f8e">VRP solver (OR-Tools)</text>
+<text x="830" y="318" text-anchor="middle" font-size="10" fill="#7a7f8e">Leaflet + Mapbox GL</text>
+<text x="830" y="333" text-anchor="middle" font-size="9" fill="#f59e0b">Geospatial / ML</text>
+
+<!-- arrows bus → engines -->
+<line x1="140" y1="166" x2="140" y2="210" stroke="#8b5cf6" stroke-width="1" stroke-opacity=".5" marker-end="url(#arr)"/>
+<line x1="370" y1="166" x2="370" y2="210" stroke="#8b5cf6" stroke-width="1" stroke-opacity=".5" marker-end="url(#arr)"/>
+<line x1="600" y1="166" x2="600" y2="210" stroke="#8b5cf6" stroke-width="1" stroke-opacity=".5" marker-end="url(#arr)"/>
+<line x1="830" y1="166" x2="830" y2="210" stroke="#8b5cf6" stroke-width="1" stroke-opacity=".5" marker-end="url(#arr)"/>
+
+<!-- ══ ROW 4 — PLATFORM CORE ══ -->
+<!-- Intelligence Fusion -->
+<rect x="40" y="390" width="450" height="90" rx="10" fill="#111318" stroke="#22c55e" stroke-width="1.5"/>
+<rect x="40" y="390" width="450" height="28" rx="10" fill="#052e16" stroke="none"/>
+<rect x="40" y="404" width="450" height="14" rx="0" fill="#052e16" stroke="none"/>
+<text x="265" y="409" text-anchor="middle" font-size="12" font-weight="600" fill="#86efac">Intelligence Fusion Layer</text>
+<text x="170" y="434" text-anchor="middle" font-size="10" fill="#d1d5db">Multi-signal correlation</text>
+<text x="170" y="450" text-anchor="middle" font-size="10" fill="#7a7f8e">Risk scoring engine</text>
+<text x="170" y="466" text-anchor="middle" font-size="10" fill="#7a7f8e">Alert prioritisation</text>
+<text x="400" y="434" text-anchor="middle" font-size="10" fill="#d1d5db">Case management</text>
+<text x="400" y="450" text-anchor="middle" font-size="10" fill="#7a7f8e">Evidence packaging</text>
+<text x="400" y="466" text-anchor="middle" font-size="10" fill="#7a7f8e">Audit trail (immutable log)</text>
+
+<!-- Storage -->
+<rect x="520" y="390" width="200" height="90" rx="10" fill="#111318" stroke="#22c55e" stroke-width="1.5"/>
+<rect x="520" y="390" width="200" height="28" rx="10" fill="#052e16" stroke="none"/>
+<rect x="520" y="404" width="200" height="14" rx="0" fill="#052e16" stroke="none"/>
+<text x="620" y="409" text-anchor="middle" font-size="12" font-weight="600" fill="#86efac">Storage Layer</text>
+<text x="620" y="434" text-anchor="middle" font-size="10" fill="#d1d5db">PostgreSQL + PostGIS</text>
+<text x="620" y="450" text-anchor="middle" font-size="10" fill="#7a7f8e">Neo4j (graph store)</text>
+<text x="620" y="466" text-anchor="middle" font-size="10" fill="#7a7f8e">S3 (evidence / images)</text>
+
+<!-- API Gateway -->
+<rect x="750" y="390" width="220" height="90" rx="10" fill="#111318" stroke="#22c55e" stroke-width="1.5"/>
+<rect x="750" y="390" width="220" height="28" rx="10" fill="#052e16" stroke="none"/>
+<rect x="750" y="404" width="220" height="14" rx="0" fill="#052e16" stroke="none"/>
+<text x="860" y="409" text-anchor="middle" font-size="12" font-weight="600" fill="#86efac">API Gateway</text>
+<text x="860" y="434" text-anchor="middle" font-size="10" fill="#d1d5db">FastAPI · mTLS auth</text>
+<text x="860" y="450" text-anchor="middle" font-size="10" fill="#7a7f8e">Role-based access control</text>
+<text x="860" y="466" text-anchor="middle" font-size="10" fill="#7a7f8e">Rate limiting · JWT</text>
+
+<!-- arrows engines → fusion -->
+<line x1="140" y1="340" x2="180" y2="390" stroke="#f59e0b" stroke-width="1" stroke-opacity=".5" marker-end="url(#arr)"/>
+<line x1="370" y1="340" x2="280" y2="390" stroke="#f59e0b" stroke-width="1" stroke-opacity=".5" marker-end="url(#arr)"/>
+<line x1="600" y1="340" x2="360" y2="390" stroke="#f59e0b" stroke-width="1" stroke-opacity=".5" marker-end="url(#arr)"/>
+<line x1="830" y1="340" x2="450" y2="390" stroke="#f59e0b" stroke-width="1" stroke-opacity=".5" marker-end="url(#arr)"/>
+
+<!-- fusion → storage -->
+<line x1="490" y1="435" x2="520" y2="435" stroke="#22c55e" stroke-width="1" stroke-opacity=".5" marker-end="url(#arr)"/>
+<!-- fusion → API -->
+<line x1="720" y1="435" x2="750" y2="435" stroke="#22c55e" stroke-width="1" stroke-opacity=".5" marker-end="url(#arr)"/>
+
+<!-- ══ ROW 5 — CONSUMERS ══ -->
+
+<!-- Law Enforcement Dashboard -->
+<rect x="40" y="540" width="185" height="80" rx="8" fill="#111318" stroke="#e8eaf0" stroke-width="1" stroke-opacity=".25"/>
+<text x="132" y="562" text-anchor="middle" font-size="11" font-weight="600" fill="#e8eaf0">Law Enforcement</text>
+<text x="132" y="577" text-anchor="middle" font-size="10" fill="#7a7f8e">Command dashboard</text>
+<text x="132" y="592" text-anchor="middle" font-size="10" fill="#7a7f8e">Graph viz · map · alerts</text>
+<text x="132" y="607" text-anchor="middle" font-size="10" fill="#7a7f8e">Evidence export</text>
+
+<!-- Banks -->
+<rect x="255" y="540" width="185" height="80" rx="8" fill="#111318" stroke="#e8eaf0" stroke-width="1" stroke-opacity=".25"/>
+<text x="347" y="562" text-anchor="middle" font-size="11" font-weight="600" fill="#e8eaf0">Banks / Fintechs</text>
+<text x="347" y="577" text-anchor="middle" font-size="10" fill="#7a7f8e">Fraud risk API</text>
+<text x="347" y="592" text-anchor="middle" font-size="10" fill="#7a7f8e">Counterfeit scanner</text>
+<text x="347" y="607" text-anchor="middle" font-size="10" fill="#7a7f8e">Account freeze trigger</text>
+
+<!-- Citizens -->
+<rect x="470" y="540" width="185" height="80" rx="8" fill="#111318" stroke="#e8eaf0" stroke-width="1" stroke-opacity=".25"/>
+<text x="562" y="562" text-anchor="middle" font-size="11" font-weight="600" fill="#e8eaf0">Citizens</text>
+<text x="562" y="577" text-anchor="middle" font-size="10" fill="#7a7f8e">Fraud Shield chatbot</text>
+<text x="562" y="592" text-anchor="middle" font-size="10" fill="#7a7f8e">WhatsApp / IVR / App</text>
+<text x="562" y="607" text-anchor="middle" font-size="10" fill="#7a7f8e">12 regional languages</text>
+
+<!-- Telecom -->
+<rect x="685" y="540" width="185" height="80" rx="8" fill="#111318" stroke="#e8eaf0" stroke-width="1" stroke-opacity=".25"/>
+<text x="777" y="562" text-anchor="middle" font-size="11" font-weight="600" fill="#e8eaf0">Telecom / DoT</text>
+<text x="777" y="577" text-anchor="middle" font-size="10" fill="#7a7f8e">SIM block webhook</text>
+<text x="777" y="592" text-anchor="middle" font-size="10" fill="#7a7f8e">Number takedown API</text>
+<text x="777" y="607" text-anchor="middle" font-size="10" fill="#7a7f8e">Real-time intercept flag</text>
+
+<!-- MHA / CERT-In -->
+<rect x="900" y="540" width="170" height="80" rx="8" fill="#111318" stroke="#e8eaf0" stroke-width="1" stroke-opacity=".25"/>
+<text x="985" y="562" text-anchor="middle" font-size="11" font-weight="600" fill="#e8eaf0">MHA / CERT-In</text>
+<text x="985" y="577" text-anchor="middle" font-size="10" fill="#7a7f8e">Policy dashboard</text>
+<text x="985" y="592" text-anchor="middle" font-size="10" fill="#7a7f8e">National threat report</text>
+<text x="985" y="607" text-anchor="middle" font-size="10" fill="#7a7f8e">Inter-agency sharing</text>
+
+<!-- arrows API → consumers -->
+<line x1="860" y1="480" x2="860" y2="510" stroke="#22c55e" stroke-width="1" stroke-opacity=".4"/>
+<line x1="860" y1="510" x2="132" y2="510" stroke="#22c55e" stroke-width="1" stroke-opacity=".4"/>
+<line x1="132" y1="510" x2="132" y2="540" stroke="#22c55e" stroke-width="1" stroke-opacity=".4" marker-end="url(#arr)"/>
+<line x1="347" y1="510" x2="347" y2="540" stroke="#22c55e" stroke-width="1" stroke-opacity=".4" marker-end="url(#arr)"/>
+<line x1="562" y1="510" x2="562" y2="540" stroke="#22c55e" stroke-width="1" stroke-opacity=".4" marker-end="url(#arr)"/>
+<line x1="777" y1="510" x2="777" y2="540" stroke="#22c55e" stroke-width="1" stroke-opacity=".4" marker-end="url(#arr)"/>
+<line x1="985" y1="510" x2="985" y2="540" stroke="#22c55e" stroke-width="1" stroke-opacity=".4" marker-end="url(#arr)"/>
+
+<!-- ══ SECURITY SIDE RAIL ══ -->
+<rect x="1040" y="120" width="50" height="360" rx="8" fill="#111318" stroke="#ef4444" stroke-width="1" stroke-opacity=".5"/>
+<text x="1065" y="305" text-anchor="middle" font-size="10" fill="#fca5a5" font-weight="600" transform="rotate(-90,1065,305)">Security · TLS · RBAC · Immutable audit log · Data residency IN</text>
+
+<!-- ══ LEGEND ══ -->
+<rect x="40" y="670" width="930" height="46" rx="8" fill="#111318" stroke="#2a2d35" stroke-width="1"/>
+<circle cx="72" cy="693" r="6" fill="#111318" stroke="#3b82f6" stroke-width="1.5"/>
+<text x="84" y="697" font-size="10" fill="#7a7f8e">Data source</text>
+<circle cx="170" cy="693" r="6" fill="#111318" stroke="#8b5cf6" stroke-width="1.5"/>
+<text x="182" y="697" font-size="10" fill="#7a7f8e">Ingestion / infra</text>
+<circle cx="280" cy="693" r="6" fill="#111318" stroke="#f59e0b" stroke-width="1.5"/>
+<text x="292" y="697" font-size="10" fill="#7a7f8e">AI engine (specialised model)</text>
+<circle cx="440" cy="693" r="6" fill="#111318" stroke="#22c55e" stroke-width="1.5"/>
+<text x="452" y="697" font-size="10" fill="#7a7f8e">Platform / fusion</text>
+<circle cx="552" cy="693" r="6" fill="#111318" stroke="#e8eaf0" stroke-width="1" stroke-opacity=".4"/>
+<text x="564" y="697" font-size="10" fill="#7a7f8e">Consumer / end user</text>
+<circle cx="672" cy="693" r="6" fill="#111318" stroke="#ef4444" stroke-width="1.5"/>
+<text x="684" y="697" font-size="10" fill="#7a7f8e">Security boundary</text>
+<text x="820" y="697" font-size="10" fill="#4b5563">LLM API used only for NLP explanation layer (not for CV, graph, or geo)</text>
+
+<!-- ══ TITLE BLOCK ══ -->
+<rect x="40" y="758" width="930" height="40" rx="8" fill="#111318" stroke="#2a2d35" stroke-width="1"/>
+<text x="60" y="783" font-size="11" font-weight="600" fill="#e8eaf0">SAHAYAK</text>
+<text x="145" y="783" font-size="10" fill="#7a7f8e">·  Digital Public Safety Intelligence Platform  ·  ET AI Hackathon 2026  ·  PS-6  ·  Stack: Kafka · Neo4j GDS · YOLOv8 · BERT · DBSCAN/OR-Tools · PostGIS · FastAPI · Claude Sonnet (NLP only)</text>
+</svg>
+</body>
+</html>
