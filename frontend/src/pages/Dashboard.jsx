@@ -1,49 +1,123 @@
 import { useEffect, useState } from 'react'
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  BarChart, Bar, Legend
+  BarChart, Bar,
 } from 'recharts'
 import {
   MdWarningAmber, MdBugReport, MdOutlineSpeed, MdHub,
-  MdArrowUpward, MdArrowDownward, MdCircle
+  MdCircle, MdArrowForward,
 } from 'react-icons/md'
 import { getDashboardSummary } from '../services/api'
 import { KpiCard, SectionHeader, Card, RiskBadge, PageWrapper, Spinner } from '../components/common'
 
+// ── Static data ───────────────────────────────────────────────────────────────
+
 const MOCK_CHART = [
-  { time: '00:00', scams: 12, fraud: 8, arrests: 3 },
-  { time: '04:00', scams: 5, fraud: 4, arrests: 1 },
-  { time: '08:00', scams: 18, fraud: 14, arrests: 7 },
+  { time: '00:00', scams: 12, fraud: 8,  arrests: 3  },
+  { time: '04:00', scams: 5,  fraud: 4,  arrests: 1  },
+  { time: '08:00', scams: 18, fraud: 14, arrests: 7  },
   { time: '12:00', scams: 34, fraud: 22, arrests: 11 },
-  { time: '16:00', scams: 28, fraud: 19, arrests: 9 },
+  { time: '16:00', scams: 28, fraud: 19, arrests: 9  },
   { time: '20:00', scams: 41, fraud: 30, arrests: 14 },
-  { time: '23:59', scams: 22, fraud: 17, arrests: 6 },
+  { time: '23:59', scams: 22, fraud: 17, arrests: 6  },
+]
+
+const FRAUD_TYPES = [
+  { type: 'Digital Arrest', count: 41 },
+  { type: 'UPI Fraud',      count: 34 },
+  { type: 'KYC Scam',       count: 28 },
+  { type: 'Vishing',        count: 19 },
+  { type: 'SIM Swap',       count: 12 },
 ]
 
 const MOCK_FEED = [
-  { id: 'C-2841', type: 'Digital Arrest', risk: 'CRITICAL', city: 'Mumbai', time: '2m ago' },
-  { id: 'C-2840', type: 'UPI Fraud', risk: 'HIGH', city: 'Delhi', time: '7m ago' },
-  { id: 'C-2839', type: 'KYC Scam', risk: 'HIGH', city: 'Bangalore', time: '12m ago' },
-  { id: 'C-2838', type: 'FedEx Scam', risk: 'MEDIUM', city: 'Hyderabad', time: '19m ago' },
-  { id: 'C-2837', type: 'Vishing', risk: 'MEDIUM', city: 'Chennai', time: '31m ago' },
-  { id: 'C-2836', type: 'SIM Swap', risk: 'HIGH', city: 'Pune', time: '45m ago' },
+  { id: 'C-2841', type: 'Digital Arrest', risk: 'CRITICAL', city: 'Mumbai',    time: '2m ago'  },
+  { id: 'C-2840', type: 'UPI Fraud',      risk: 'HIGH',     city: 'Delhi',     time: '7m ago'  },
+  { id: 'C-2839', type: 'KYC Scam',       risk: 'HIGH',     city: 'Bangalore', time: '12m ago' },
+  { id: 'C-2838', type: 'FedEx Scam',     risk: 'MEDIUM',   city: 'Hyderabad', time: '19m ago' },
+  { id: 'C-2837', type: 'Vishing',        risk: 'MEDIUM',   city: 'Chennai',   time: '31m ago' },
+  { id: 'C-2836', type: 'SIM Swap',       risk: 'HIGH',     city: 'Pune',      time: '45m ago' },
 ]
 
 const MOCK_INVESTIGATIONS = [
-  { case_id: 2841, type: 'Digital Arrest Scam', suspect_phone: '+91-98765-XXXXX', cluster: 'C-7', confidence: 94, status: 'ACTIVE' },
-  { case_id: 2840, type: 'UPI Chain Fraud', suspect_phone: '+91-91234-XXXXX', cluster: 'C-3', confidence: 87, status: 'ACTIVE' },
-  { case_id: 2839, type: 'KYC Impersonation', suspect_phone: '+91-76543-XXXXX', cluster: 'C-7', confidence: 81, status: 'REVIEWING' },
-  { case_id: 2835, type: 'FedEx Courier Scam', suspect_phone: '+91-88990-XXXXX', cluster: 'C-1', confidence: 76, status: 'CLOSED' },
+  { case_id: 2841, type: 'Digital Arrest Scam', suspect_phone: '+91-98765-XXXXX', cluster: 'C-7', confidence: 94, status: 'ACTIVE'    },
+  { case_id: 2840, type: 'UPI Chain Fraud',      suspect_phone: '+91-91234-XXXXX', cluster: 'C-3', confidence: 87, status: 'ACTIVE'    },
+  { case_id: 2839, type: 'KYC Impersonation',    suspect_phone: '+91-76543-XXXXX', cluster: 'C-7', confidence: 81, status: 'REVIEWING' },
+  { case_id: 2835, type: 'FedEx Courier Scam',   suspect_phone: '+91-88990-XXXXX', cluster: 'C-1', confidence: 76, status: 'CLOSED'    },
 ]
 
+// ── Shared style objects ──────────────────────────────────────────────────────
+
 const TOOLTIP_STYLE = {
-  backgroundColor: '#111827',
-  border: '1px solid #1e2535',
-  borderRadius: '6px',
-  color: '#e2e8f0',
-  fontFamily: 'JetBrains Mono, monospace',
-  fontSize: '12px',
+  backgroundColor: 'var(--color-elevated)',
+  border: '1px solid var(--color-border-md)',
+  borderRadius: 'var(--radius-sm)',
+  color: 'var(--color-text-primary)',
+  fontFamily: 'var(--font-mono)',
+  fontSize: '10px',
+  boxShadow: 'var(--shadow-md)',
 }
+
+const RISK_DOT = { CRITICAL: '#ef4444', HIGH: '#f97316', MEDIUM: '#f59e0b' }
+
+const STATUS_STYLE = {
+  ACTIVE:    { bg: 'var(--color-danger-dim)',  color: 'var(--color-danger)',  border: 'rgba(239,68,68,0.25)'  },
+  REVIEWING: { bg: 'var(--color-warning-dim)', color: 'var(--color-warning)', border: 'rgba(245,158,11,0.25)' },
+  CLOSED:    { bg: 'var(--color-elevated)',    color: 'var(--color-text-muted)', border: 'var(--color-border)' },
+}
+
+// ── Micro components ──────────────────────────────────────────────────────────
+
+function ConfidenceBar({ value }) {
+  const color = value >= 90 ? 'var(--color-danger)' : value >= 80 ? 'var(--color-warning)' : 'var(--color-accent)'
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+      <div style={{ width: 50, height: 3, background: 'var(--color-border)', borderRadius: 99, overflow: 'hidden' }}>
+        <div style={{ width: `${value}%`, height: '100%', background: color, borderRadius: 99, transition: 'width 0.4s ease' }} />
+      </div>
+      <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6875rem', color: 'var(--color-text-primary)' }}>
+        {value}%
+      </span>
+    </div>
+  )
+}
+
+function ClusterPill({ label }) {
+  return (
+    <span style={{
+      padding: '2px 8px', borderRadius: 'var(--radius-sm)',
+      background: 'rgba(167,139,250,0.08)', color: '#a78bfa',
+      border: '1px solid rgba(167,139,250,0.2)',
+      fontFamily: 'var(--font-mono)', fontSize: '0.6875rem',
+    }}>
+      {label}
+    </span>
+  )
+}
+
+function StatusBadge({ status }) {
+  const s = STATUS_STYLE[status] ?? STATUS_STYLE.CLOSED
+  return (
+    <span style={{
+      padding: '2px 7px', borderRadius: 'var(--radius-sm)',
+      background: s.bg, color: s.color, border: `1px solid ${s.border}`,
+      fontFamily: 'var(--font-mono)', fontSize: '0.5625rem',
+      fontWeight: 700, letterSpacing: '0.06em',
+    }}>
+      {status}
+    </span>
+  )
+}
+
+// ── Shared cell style ─────────────────────────────────────────────────────────
+const TD = { padding: '9px 10px', borderBottom: '1px solid var(--color-border)', verticalAlign: 'middle' }
+const TH = {
+  fontFamily: 'var(--font-mono)', fontSize: '0.5625rem', textTransform: 'uppercase',
+  letterSpacing: '0.1em', color: 'var(--color-text-muted)', padding: '0 10px 10px',
+  borderBottom: '1px solid var(--color-border)', textAlign: 'left', whiteSpace: 'nowrap',
+}
+
+// ── Dashboard ─────────────────────────────────────────────────────────────────
 
 export default function Dashboard() {
   const [summary, setSummary] = useState(null)
@@ -58,151 +132,168 @@ export default function Dashboard() {
 
   return (
     <PageWrapper>
-      {/* Hero */}
-      <div className="relative rounded-xl border border-cmd-border bg-gradient-to-r from-cmd-surface via-cmd-card to-cmd-surface overflow-hidden px-8 py-7">
-        <div className="absolute inset-0 cmd-grid opacity-50" />
-        <div className="absolute top-0 right-0 w-96 h-full bg-gradient-to-l from-cmd-accent/5 to-transparent" />
-        <div className="relative">
-          <div className="flex items-center gap-2 mb-2">
-            <span className="text-xs font-mono text-cmd-accent tracking-[0.2em] uppercase">
-              ▸ SAHAYAK v1.0 — ACTIVE MONITORING
+
+      {/* ── Hero ── */}
+      <div style={{
+        position: 'relative', borderRadius: 'var(--radius-lg)',
+        border: '1px solid var(--color-border)',
+        background: 'var(--color-surface)', overflow: 'hidden', padding: '24px 28px',
+      }}>
+        {/* Accent gradient */}
+        <div style={{
+          position: 'absolute', top: 0, right: 0, width: '45%', height: '100%',
+          background: 'linear-gradient(to left, rgba(59,124,244,0.05), transparent)',
+          pointerEvents: 'none',
+        }} />
+        <div style={{ position: 'relative' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+            <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.5625rem', color: 'var(--color-accent)', letterSpacing: '0.18em', textTransform: 'uppercase' }}>
+              ▸ SAHAYAK v1.0 — Active Monitoring
             </span>
+            <span style={{
+              padding: '2px 8px', borderRadius: 99,
+              background: 'var(--color-success-dim)', border: '1px solid rgba(34,197,94,0.2)',
+              color: 'var(--color-success)', fontFamily: 'var(--font-mono)', fontSize: '0.5rem', letterSpacing: '0.1em',
+            }}>LIVE</span>
           </div>
-          <h1 className="text-3xl font-bold text-cmd-text mb-1">
-            Cyber Crime <span className="text-cmd-accent">Command Center</span>
-          </h1>
-          <p className="text-cmd-subtext text-sm">
-            Digital Public Safety Intelligence Platform — Real-time fraud detection, investigation support &amp; evidence generation
-          </p>
-          <div className="flex gap-4 mt-4">
-            {['AI-Powered Detection', 'Fraud DNA Engine', 'Network Intelligence', 'Evidence Generation'].map((tag) => (
-              <span
-                key={tag}
-                className="text-xs font-mono px-3 py-1 bg-cmd-accent/5 border border-cmd-accent/15 rounded-full text-cmd-accent"
-              >
-                {tag}
-              </span>
+          <div style={{ fontSize: '1.375rem', fontWeight: 700, letterSpacing: '-0.025em', color: 'var(--color-text-primary)', marginBottom: 5, lineHeight: 1.25 }}>
+            Real-Time <span style={{ color: 'var(--color-accent)' }}>Cyber Fraud</span> Intelligence
+          </div>
+          <div style={{ fontSize: '0.8125rem', color: 'var(--color-text-secondary)', marginBottom: 18 }}>
+            National monitoring system — active cases, threat clusters, and field investigations
+          </div>
+          <div style={{ display: 'flex', gap: 28 }}>
+            {[
+              { label: 'Total Cases',    value: summary?.total_cases?.toLocaleString() ?? '2,841' },
+              { label: 'High Risk',      value: summary?.high_risk_cases ?? '184', color: 'var(--color-danger)' },
+              { label: 'Arrests Today', value: '23' },
+              { label: 'Coverage',      value: '28 States' },
+            ].map(({ label, value, color }) => (
+              <div key={label}>
+                <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.5625rem', color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 3 }}>
+                  {label}
+                </div>
+                <div style={{ fontFamily: 'var(--font-mono)', fontSize: '1.25rem', fontWeight: 700, color: color ?? 'var(--color-text-primary)', letterSpacing: '-0.02em' }}>
+                  {loading ? '—' : value}
+                </div>
+              </div>
             ))}
           </div>
         </div>
       </div>
 
-      {/* KPIs */}
+      {/* ── KPI row ── */}
       {loading ? (
-        <div className="flex justify-center py-8"><Spinner size="lg" /></div>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '32px 0' }}>
+          <Spinner size="lg" />
+        </div>
       ) : (
-        <div className="grid grid-cols-4 gap-4">
-          <KpiCard
-            label="Total Cases"
-            value={summary?.total_cases?.toLocaleString()}
-            icon={MdBugReport}
-            color="accent"
-            sublabel="All time registered"
-          />
-          <KpiCard
-            label="High Risk Cases"
-            value={summary?.high_risk_cases}
-            icon={MdWarningAmber}
-            color="danger"
-            sublabel="Requiring immediate action"
-          />
-          <KpiCard
-            label="Threat Level"
-            value={summary?.threat_level}
-            icon={MdOutlineSpeed}
-            color="warn"
-            sublabel="National cyber threat index"
-          />
-          <KpiCard
-            label="Active Clusters"
-            value="14"
-            icon={MdHub}
-            color="purple"
-            sublabel="Fraud network clusters"
-          />
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 10 }}>
+          <KpiCard label="Active Cases"    value={summary?.total_cases?.toLocaleString() ?? '2,841'} icon={MdWarningAmber} color="accent"  sublabel="+12% from last week" />
+          <KpiCard label="High Risk Cases" value={summary?.high_risk_cases ?? '184'}                  icon={MdBugReport}    color="danger"  sublabel="Requiring immediate action" />
+          <KpiCard label="Threat Index"    value="7.4"                                                icon={MdOutlineSpeed} color="warn"    sublabel="National cyber threat index" />
+          <KpiCard label="Active Clusters" value="14"                                                 icon={MdHub}          color="purple"  sublabel="Fraud network clusters" />
         </div>
       )}
 
-      {/* Charts row */}
-      <div className="grid grid-cols-3 gap-4">
-        {/* Area chart */}
-        <Card className="col-span-2 p-5">
+      {/* ── Charts row ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 10 }}>
+
+        {/* Area: 24H activity */}
+        <Card style={{ padding: 20 }}>
           <SectionHeader title="Threat Activity — 24H" badge="LIVE" />
-          <ResponsiveContainer width="100%" height={220}>
-            <AreaChart data={MOCK_CHART} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
+          <ResponsiveContainer width="100%" height={200}>
+            <AreaChart data={MOCK_CHART} margin={{ top: 4, right: 4, left: -24, bottom: 0 }}>
               <defs>
                 <linearGradient id="scamGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#00d4ff" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="#00d4ff" stopOpacity={0} />
+                  <stop offset="5%"  stopColor="#3b82f6" stopOpacity={0.22} />
+                  <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
                 </linearGradient>
                 <linearGradient id="fraudGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#ef4444" stopOpacity={0.3} />
+                  <stop offset="5%"  stopColor="#ef4444" stopOpacity={0.18} />
                   <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#1e2535" />
-              <XAxis dataKey="time" tick={{ fill: '#4b5563', fontSize: 10, fontFamily: 'JetBrains Mono' }} />
-              <YAxis tick={{ fill: '#4b5563', fontSize: 10, fontFamily: 'JetBrains Mono' }} />
+              <CartesianGrid strokeDasharray="2 4" stroke="var(--color-border)" />
+              <XAxis dataKey="time" tick={{ fill: 'var(--color-text-muted)', fontSize: 9, fontFamily: 'var(--font-mono)' }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fill: 'var(--color-text-muted)', fontSize: 9, fontFamily: 'var(--font-mono)' }} axisLine={false} tickLine={false} />
               <Tooltip contentStyle={TOOLTIP_STYLE} />
-              <Legend wrapperStyle={{ fontSize: '11px', fontFamily: 'JetBrains Mono' }} />
-              <Area type="monotone" dataKey="scams" stroke="#00d4ff" fill="url(#scamGrad)" strokeWidth={1.5} />
-              <Area type="monotone" dataKey="fraud" stroke="#ef4444" fill="url(#fraudGrad)" strokeWidth={1.5} />
-              <Area type="monotone" dataKey="arrests" stroke="#10b981" fill="none" strokeWidth={1.5} strokeDasharray="4 2" />
+              <Area type="monotone" dataKey="scams"   stroke="#3b82f6" fill="url(#scamGrad)"  strokeWidth={1.5} dot={false} name="Scams" />
+              <Area type="monotone" dataKey="fraud"   stroke="#ef4444" fill="url(#fraudGrad)" strokeWidth={1.5} dot={false} name="Fraud" />
+              <Area type="monotone" dataKey="arrests" stroke="#22c55e" fill="none"             strokeWidth={1.5} strokeDasharray="4 2" dot={false} name="Arrests" />
             </AreaChart>
           </ResponsiveContainer>
+          <div style={{ display: 'flex', gap: 14, marginTop: 10 }}>
+            {[
+              { color: '#3b82f6', label: 'Scams' },
+              { color: '#ef4444', label: 'Fraud' },
+              { color: '#22c55e', label: 'Arrests', dashed: true },
+            ].map(({ color, label, dashed }) => (
+              <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                <div style={{
+                  width: 18, height: 2,
+                  background: dashed
+                    ? `repeating-linear-gradient(to right, ${color} 0, ${color} 4px, transparent 4px, transparent 8px)`
+                    : color,
+                }} />
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.5625rem', color: 'var(--color-text-muted)' }}>{label}</span>
+              </div>
+            ))}
+          </div>
         </Card>
 
-        {/* Fraud type bar */}
-        <Card className="p-5">
+        {/* Bar: fraud types */}
+        <Card style={{ padding: 20 }}>
           <SectionHeader title="Fraud Types" />
-          <ResponsiveContainer width="100%" height={220}>
-            <BarChart
-              layout="vertical"
-              data={[
-                { type: 'Digital Arrest', count: 41 },
-                { type: 'UPI Fraud', count: 34 },
-                { type: 'KYC Scam', count: 28 },
-                { type: 'Vishing', count: 19 },
-                { type: 'SIM Swap', count: 12 },
-              ]}
-              margin={{ top: 0, right: 10, left: 0, bottom: 0 }}
-            >
-              <XAxis type="number" tick={{ fill: '#4b5563', fontSize: 9, fontFamily: 'JetBrains Mono' }} />
-              <YAxis type="category" dataKey="type" tick={{ fill: '#94a3b8', fontSize: 9, fontFamily: 'JetBrains Mono' }} width={80} />
-              <Tooltip contentStyle={TOOLTIP_STYLE} />
-              <Bar dataKey="count" fill="#00d4ff" fillOpacity={0.7} radius={[0, 3, 3, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
+          <div style={{ marginTop: 4 }}>
+            {FRAUD_TYPES.map(({ type, count }) => (
+              <div key={type} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.625rem', color: 'var(--color-text-secondary)', width: 96, textAlign: 'right', flexShrink: 0 }}>
+                  {type}
+                </span>
+                <div style={{ flex: 1, height: 6, background: 'var(--color-border)', borderRadius: 99, overflow: 'hidden' }}>
+                  <div style={{ width: `${(count / 41 * 100).toFixed(0)}%`, height: '100%', background: 'rgba(59,124,244,0.7)', borderRadius: 99 }} />
+                </div>
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.625rem', color: 'var(--color-text-secondary)', width: 22, textAlign: 'right', flexShrink: 0 }}>
+                  {count}
+                </span>
+              </div>
+            ))}
+          </div>
         </Card>
       </div>
 
-      {/* Bottom row */}
-      <div className="grid grid-cols-3 gap-4">
-        {/* Threat feed */}
-        <Card className="p-5">
+      {/* ── Bottom row ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 10 }}>
+
+        {/* Live threat feed */}
+        <Card style={{ padding: 20, display: 'flex', flexDirection: 'column' }}>
           <SectionHeader title="Live Threat Feed" badge="REAL-TIME" />
-          <div className="space-y-2">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             {MOCK_FEED.map((item) => (
               <div
                 key={item.id}
-                className="flex items-center gap-3 px-3 py-2.5 rounded bg-cmd-bg border border-cmd-border hover:border-cmd-accent/20 transition-colors group"
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 10,
+                  padding: '7px 10px', borderRadius: 'var(--radius-sm)',
+                  background: 'var(--color-bg)', border: '1px solid var(--color-border)',
+                  transition: 'border-color var(--transition)', cursor: 'default',
+                }}
+                onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--color-border-md)'}
+                onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--color-border)'}
               >
-                <MdCircle
-                  className={`text-xs flex-shrink-0 ${
-                    item.risk === 'CRITICAL'
-                      ? 'text-red-400 animate-pulse'
-                      : item.risk === 'HIGH'
-                      ? 'text-cmd-danger'
-                      : 'text-cmd-warn'
-                  }`}
-                />
-                <div className="flex-1 min-w-0">
-                  <div className="text-xs font-mono text-cmd-text truncate">{item.type}</div>
-                  <div className="text-xs text-cmd-muted">{item.city} · {item.time}</div>
+                <MdCircle style={{ fontSize: 7, flexShrink: 0, color: RISK_DOT[item.risk] ?? '#6b7280' }} />
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem', color: 'var(--color-text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {item.type}
+                  </div>
+                  <div style={{ fontSize: '0.6875rem', color: 'var(--color-text-muted)', marginTop: 1 }}>
+                    {item.city} · {item.time}
+                  </div>
                 </div>
-                <div className="flex flex-col items-end gap-1">
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 3, flexShrink: 0 }}>
                   <RiskBadge level={item.risk} />
-                  <span className="text-xs font-mono text-cmd-muted">{item.id}</span>
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.5rem', color: 'var(--color-text-muted)' }}>{item.id}</span>
                 </div>
               </div>
             ))}
@@ -210,51 +301,50 @@ export default function Dashboard() {
         </Card>
 
         {/* Investigations table */}
-        <Card className="col-span-2 p-5">
-          <SectionHeader title="Recent Investigations" />
-          <div className="overflow-x-auto">
-            <table className="w-full text-xs font-mono">
+        <Card style={{ padding: 20 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+            <SectionHeader title="Recent Investigations" />
+            <button style={{
+              display: 'flex', alignItems: 'center', gap: 4,
+              background: 'none', border: 'none', cursor: 'pointer',
+              fontFamily: 'var(--font-mono)', fontSize: '0.625rem',
+              color: 'var(--color-accent)', padding: '4px 0',
+            }}>
+              View all <MdArrowForward style={{ fontSize: 11 }} />
+            </button>
+          </div>
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
-                <tr className="text-cmd-muted border-b border-cmd-border">
-                  {['Case ID', 'Fraud Type', 'Phone', 'Cluster', 'Confidence', 'Status'].map((h) => (
-                    <th key={h} className="text-left pb-2 pr-4 uppercase tracking-wider text-[10px]">{h}</th>
+                <tr>
+                  {['Case ID', 'Fraud Type', 'Phone', 'Cluster', 'Confidence', 'Status'].map(h => (
+                    <th key={h} style={TH}>{h}</th>
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-cmd-border/50">
-                {MOCK_INVESTIGATIONS.map((inv) => (
-                  <tr key={inv.case_id} className="hover:bg-cmd-bg/50 transition-colors">
-                    <td className="py-2.5 pr-4 text-cmd-accent">#{inv.case_id}</td>
-                    <td className="pr-4 text-cmd-text">{inv.type}</td>
-                    <td className="pr-4 text-cmd-subtext">{inv.suspect_phone}</td>
-                    <td className="pr-4">
-                      <span className="px-2 py-0.5 bg-purple-500/10 text-purple-400 border border-purple-500/20 rounded">
-                        {inv.cluster}
-                      </span>
+              <tbody>
+                {MOCK_INVESTIGATIONS.map((inv, idx) => (
+                  <tr key={inv.case_id}
+                    onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.015)'}
+                    onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                  >
+                    <td style={{ ...TD, borderBottom: idx === MOCK_INVESTIGATIONS.length - 1 ? 'none' : TD.borderBottom }}>
+                      <span style={{ color: 'var(--color-accent)', fontFamily: 'var(--font-mono)', fontSize: '0.75rem' }}>#{inv.case_id}</span>
                     </td>
-                    <td className="pr-4">
-                      <div className="flex items-center gap-2">
-                        <div className="w-12 h-1 bg-cmd-border rounded-full overflow-hidden">
-                          <div
-                            className="h-full bg-cmd-accent rounded-full"
-                            style={{ width: `${inv.confidence}%` }}
-                          />
-                        </div>
-                        <span className="text-cmd-text">{inv.confidence}%</span>
-                      </div>
+                    <td style={{ ...TD, borderBottom: idx === MOCK_INVESTIGATIONS.length - 1 ? 'none' : TD.borderBottom, color: 'var(--color-text-primary)', fontWeight: 500, fontSize: '0.8125rem' }}>
+                      {inv.type}
                     </td>
-                    <td>
-                      <span
-                        className={`px-2 py-0.5 rounded text-[10px] font-bold border ${
-                          inv.status === 'ACTIVE'
-                            ? 'bg-cmd-danger/10 text-cmd-danger border-cmd-danger/20'
-                            : inv.status === 'REVIEWING'
-                            ? 'bg-cmd-warn/10 text-cmd-warn border-cmd-warn/20'
-                            : 'bg-cmd-muted/10 text-cmd-muted border-cmd-muted/20'
-                        }`}
-                      >
-                        {inv.status}
-                      </span>
+                    <td style={{ ...TD, borderBottom: idx === MOCK_INVESTIGATIONS.length - 1 ? 'none' : TD.borderBottom }}>
+                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem', color: 'var(--color-text-secondary)' }}>{inv.suspect_phone}</span>
+                    </td>
+                    <td style={{ ...TD, borderBottom: idx === MOCK_INVESTIGATIONS.length - 1 ? 'none' : TD.borderBottom }}>
+                      <ClusterPill label={inv.cluster} />
+                    </td>
+                    <td style={{ ...TD, borderBottom: idx === MOCK_INVESTIGATIONS.length - 1 ? 'none' : TD.borderBottom }}>
+                      <ConfidenceBar value={inv.confidence} />
+                    </td>
+                    <td style={{ ...TD, borderBottom: idx === MOCK_INVESTIGATIONS.length - 1 ? 'none' : TD.borderBottom }}>
+                      <StatusBadge status={inv.status} />
                     </td>
                   </tr>
                 ))}
@@ -263,6 +353,7 @@ export default function Dashboard() {
           </div>
         </Card>
       </div>
+
     </PageWrapper>
   )
 }
