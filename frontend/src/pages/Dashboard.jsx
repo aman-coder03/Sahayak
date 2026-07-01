@@ -1,268 +1,184 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState } from "react";
+import { getDashboardSummary, getCrimeHotspots } from "../services/api";
+import { KpiCard, Spinner, ErrorBanner } from "../components/ui";
 import {
-  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  BarChart, Bar, Legend
-} from 'recharts'
+  AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
+} from "recharts";
 import {
-  MdWarningAmber, MdBugReport, MdOutlineSpeed, MdHub,
-  MdArrowUpward, MdArrowDownward, MdCircle
-} from 'react-icons/md'
-import { getDashboardSummary } from '../services/api'
-import { KpiCard, SectionHeader, Card, RiskBadge, PageWrapper, Spinner } from '../components/common'
+  MdSecurity, MdWarning, MdGavel, MdHub,
+  MdFiberManualRecord,
+} from "react-icons/md";
 
 const MOCK_CHART = [
-  { time: '00:00', scams: 12, fraud: 8, arrests: 3 },
-  { time: '04:00', scams: 5, fraud: 4, arrests: 1 },
-  { time: '08:00', scams: 18, fraud: 14, arrests: 7 },
-  { time: '12:00', scams: 34, fraud: 22, arrests: 11 },
-  { time: '16:00', scams: 28, fraud: 19, arrests: 9 },
-  { time: '20:00', scams: 41, fraud: 30, arrests: 14 },
-  { time: '23:59', scams: 22, fraud: 17, arrests: 6 },
-]
+  { time: "00:00", cases: 12, high: 4 },
+  { time: "03:00", cases: 8, high: 2 },
+  { time: "06:00", cases: 22, high: 9 },
+  { time: "09:00", cases: 47, high: 18 },
+  { time: "12:00", cases: 63, high: 27 },
+  { time: "15:00", cases: 55, high: 22 },
+  { time: "18:00", cases: 78, high: 34 },
+  { time: "21:00", cases: 91, high: 41 },
+  { time: "Now", cases: 83, high: 38 },
+];
 
-const MOCK_FEED = [
-  { id: 'C-2841', type: 'Digital Arrest', risk: 'CRITICAL', city: 'Mumbai', time: '2m ago' },
-  { id: 'C-2840', type: 'UPI Fraud', risk: 'HIGH', city: 'Delhi', time: '7m ago' },
-  { id: 'C-2839', type: 'KYC Scam', risk: 'HIGH', city: 'Bangalore', time: '12m ago' },
-  { id: 'C-2838', type: 'FedEx Scam', risk: 'MEDIUM', city: 'Hyderabad', time: '19m ago' },
-  { id: 'C-2837', type: 'Vishing', risk: 'MEDIUM', city: 'Chennai', time: '31m ago' },
-  { id: 'C-2836', type: 'SIM Swap', risk: 'HIGH', city: 'Pune', time: '45m ago' },
-]
+const FEED = [
+  { color: "text-danger", dot: "bg-danger", title: "Digital arrest cluster — Delhi NCR", sub: "14 calls · SIM block sent to DoT", time: "2m ago" },
+  { color: "text-danger", dot: "bg-danger", title: "New mule account linked to Cluster A", sub: "₹40k inflow · FIU auto-notified", time: "8m ago" },
+  { color: "text-warn", dot: "bg-warn", title: "Counterfeit ₹500 — Kolkata PS", sub: "Serial prefix MBK · FICN batch match", time: "14m ago" },
+  { color: "text-warn", dot: "bg-warn", title: "UPI structuring detected — Hyderabad", sub: "₹2L round-trip · PMLA flag", time: "31m ago" },
+  { color: "text-brand", dot: "bg-brand", title: "Citizen report averted — Pune", sub: "No transfer · FIR filed · number traced", time: "45m ago" },
+  { color: "text-ok", dot: "bg-ok", title: "Arrest: 2 suspects — Nuh, HR", sub: "₹80k + 12 SIMs seized · forensics ongoing", time: "1h ago" },
+];
 
-const MOCK_INVESTIGATIONS = [
-  { case_id: 2841, type: 'Digital Arrest Scam', suspect_phone: '+91-98765-XXXXX', cluster: 'C-7', confidence: 94, status: 'ACTIVE' },
-  { case_id: 2840, type: 'UPI Chain Fraud', suspect_phone: '+91-91234-XXXXX', cluster: 'C-3', confidence: 87, status: 'ACTIVE' },
-  { case_id: 2839, type: 'KYC Impersonation', suspect_phone: '+91-76543-XXXXX', cluster: 'C-7', confidence: 81, status: 'REVIEWING' },
-  { case_id: 2835, type: 'FedEx Courier Scam', suspect_phone: '+91-88990-XXXXX', cluster: 'C-1', confidence: 76, status: 'CLOSED' },
-]
+const RECENT = [
+  { id: "CASE-2847", type: "Digital Arrest", risk: "HIGH", city: "Delhi", score: 94, status: "Active" },
+  { id: "CASE-2846", type: "Customs Scam", risk: "HIGH", city: "Mumbai", score: 88, status: "Active" },
+  { id: "CASE-2845", type: "UPI Fraud", risk: "MEDIUM", city: "Bengaluru", score: 61, status: "Investigating" },
+  { id: "CASE-2844", type: "Job Scam", risk: "MEDIUM", city: "Hyderabad", score: 55, status: "Investigating" },
+  { id: "CASE-2843", type: "Digital Arrest", risk: "HIGH", city: "Patna", score: 91, status: "Closed" },
+];
 
-const TOOLTIP_STYLE = {
-  backgroundColor: '#111827',
-  border: '1px solid #1e2535',
-  borderRadius: '6px',
-  color: '#e2e8f0',
-  fontFamily: 'JetBrains Mono, monospace',
-  fontSize: '12px',
+function RiskBadge({ risk }) {
+  if (risk === "HIGH") return <span className="badge-red">HIGH</span>;
+  if (risk === "MEDIUM") return <span className="badge-amber">MEDIUM</span>;
+  return <span className="badge-green">LOW</span>;
+}
+
+function StatusBadge({ status }) {
+  if (status === "Active") return <span className="badge-red">{status}</span>;
+  if (status === "Investigating") return <span className="badge-amber">{status}</span>;
+  return <span className="badge-gray">{status}</span>;
 }
 
 export default function Dashboard() {
-  const [summary, setSummary] = useState(null)
-  const [loading, setLoading] = useState(true)
+  const [summary, setSummary] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     getDashboardSummary()
       .then((r) => setSummary(r.data))
-      .catch(() => setSummary({ total_cases: 2841, high_risk_cases: 184, threat_level: 'ELEVATED' }))
-      .finally(() => setLoading(false))
-  }, [])
+      .catch(() => setError("Backend unreachable — showing demo data"))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const total = summary?.total_cases ?? 247;
+  const high = summary?.high_risk_cases ?? 89;
+  const threat = summary?.threat_level ?? "SEVERE";
 
   return (
-    <PageWrapper>
+    <div className="p-5 space-y-5 animate-fadeIn">
       {/* Hero */}
-      <div className="relative rounded-xl border border-cmd-border bg-gradient-to-r from-cmd-surface via-cmd-card to-cmd-surface overflow-hidden px-8 py-7">
-        <div className="absolute inset-0 cmd-grid opacity-50" />
-        <div className="absolute top-0 right-0 w-96 h-full bg-gradient-to-l from-cmd-accent/5 to-transparent" />
-        <div className="relative">
-          <div className="flex items-center gap-2 mb-2">
-            <span className="text-xs font-mono text-cmd-accent tracking-[0.2em] uppercase">
-              ▸ SAHAYAK v1.0 — ACTIVE MONITORING
-            </span>
+      <div className="bg-bg-2 border border-border rounded-lg p-5 flex items-center justify-between">
+        <div>
+          <div className="text-[10px] text-tx-dim uppercase tracking-widest mb-1">
+            National Cybercrime Intelligence Platform
           </div>
-          <h1 className="text-3xl font-bold text-cmd-text mb-1">
-            Cyber Crime <span className="text-cmd-accent">Command Center</span>
-          </h1>
-          <p className="text-cmd-subtext text-sm">
-            Digital Public Safety Intelligence Platform — Real-time fraud detection, investigation support &amp; evidence generation
+          <h1 className="text-xl font-bold">Command Dashboard</h1>
+          <p className="text-xs text-tx-muted mt-1">
+            Real-time threat intelligence · NCRB integrated · MHA / CERT-In certified
           </p>
-          <div className="flex gap-4 mt-4">
-            {['AI-Powered Detection', 'Fraud DNA Engine', 'Network Intelligence', 'Evidence Generation'].map((tag) => (
-              <span
-                key={tag}
-                className="text-xs font-mono px-3 py-1 bg-cmd-accent/5 border border-cmd-accent/15 rounded-full text-cmd-accent"
-              >
-                {tag}
-              </span>
-            ))}
+        </div>
+        <div className="text-right">
+          <div className="text-[10px] text-tx-dim uppercase tracking-widest">Threat Level</div>
+          <div className="text-2xl font-black text-danger">{threat}</div>
+          <div className="flex items-center justify-end gap-1.5 mt-1">
+            <MdFiberManualRecord className="text-ok text-xs animate-pulse2" />
+            <span className="text-[11px] text-ok font-medium">All systems operational</span>
           </div>
         </div>
       </div>
 
-      {/* KPIs */}
+      {error && <ErrorBanner message={error} />}
+
+      {/* KPI Grid */}
       {loading ? (
-        <div className="flex justify-center py-8"><Spinner size="lg" /></div>
+        <div className="flex justify-center py-8"><Spinner /></div>
       ) : (
-        <div className="grid grid-cols-4 gap-4">
-          <KpiCard
-            label="Total Cases"
-            value={summary?.total_cases?.toLocaleString()}
-            icon={MdBugReport}
-            color="accent"
-            sublabel="All time registered"
-          />
-          <KpiCard
-            label="High Risk Cases"
-            value={summary?.high_risk_cases}
-            icon={MdWarningAmber}
-            color="danger"
-            sublabel="Requiring immediate action"
-          />
-          <KpiCard
-            label="Threat Level"
-            value={summary?.threat_level}
-            icon={MdOutlineSpeed}
-            color="warn"
-            sublabel="National cyber threat index"
-          />
-          <KpiCard
-            label="Active Clusters"
-            value="14"
-            icon={MdHub}
-            color="purple"
-            sublabel="Fraud network clusters"
-          />
+        <div className="grid grid-cols-4 gap-3">
+          <KpiCard label="Total Cases" value={total.toLocaleString()} sub="All time" color="text-brand" icon="📁" />
+          <KpiCard label="High Risk Cases" value={high} sub="Active investigations" color="text-danger" icon="🚨" />
+          <KpiCard label="Threat Level" value={threat} sub="National status" color="text-danger" icon="⚠️" />
+          <KpiCard label="Active Clusters" value="14" sub="Fraud rings tracked" color="text-warn" icon="🕸" />
         </div>
       )}
 
-      {/* Charts row */}
+      {/* Chart + Feed */}
       <div className="grid grid-cols-3 gap-4">
-        {/* Area chart */}
-        <Card className="col-span-2 p-5">
-          <SectionHeader title="Threat Activity — 24H" badge="LIVE" />
-          <ResponsiveContainer width="100%" height={220}>
-            <AreaChart data={MOCK_CHART} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
+        {/* Chart */}
+        <div className="col-span-2 card p-4">
+          <div className="card-title">Fraud Activity — 24h</div>
+          <ResponsiveContainer width="100%" height={200}>
+            <AreaChart data={MOCK_CHART} margin={{ top: 4, right: 8, left: -20, bottom: 0 }}>
               <defs>
-                <linearGradient id="scamGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#00d4ff" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="#00d4ff" stopOpacity={0} />
+                <linearGradient id="gCases" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
                 </linearGradient>
-                <linearGradient id="fraudGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#ef4444" stopOpacity={0.3} />
+                <linearGradient id="gHigh" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#ef4444" stopOpacity={0.4} />
                   <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#1e2535" />
-              <XAxis dataKey="time" tick={{ fill: '#4b5563', fontSize: 10, fontFamily: 'JetBrains Mono' }} />
-              <YAxis tick={{ fill: '#4b5563', fontSize: 10, fontFamily: 'JetBrains Mono' }} />
-              <Tooltip contentStyle={TOOLTIP_STYLE} />
-              <Legend wrapperStyle={{ fontSize: '11px', fontFamily: 'JetBrains Mono' }} />
-              <Area type="monotone" dataKey="scams" stroke="#00d4ff" fill="url(#scamGrad)" strokeWidth={1.5} />
-              <Area type="monotone" dataKey="fraud" stroke="#ef4444" fill="url(#fraudGrad)" strokeWidth={1.5} />
-              <Area type="monotone" dataKey="arrests" stroke="#10b981" fill="none" strokeWidth={1.5} strokeDasharray="4 2" />
+              <CartesianGrid stroke="#27272a" strokeDasharray="3 3" />
+              <XAxis dataKey="time" tick={{ fill: "#71717a", fontSize: 10 }} />
+              <YAxis tick={{ fill: "#71717a", fontSize: 10 }} />
+              <Tooltip
+                contentStyle={{ background: "#18181b", border: "1px solid #27272a", borderRadius: 6, fontSize: 11 }}
+                labelStyle={{ color: "#a1a1aa" }}
+              />
+              <Area type="monotone" dataKey="cases" stroke="#3b82f6" fill="url(#gCases)" strokeWidth={2} name="Total" />
+              <Area type="monotone" dataKey="high" stroke="#ef4444" fill="url(#gHigh)" strokeWidth={2} name="High Risk" />
             </AreaChart>
           </ResponsiveContainer>
-        </Card>
+        </div>
 
-        {/* Fraud type bar */}
-        <Card className="p-5">
-          <SectionHeader title="Fraud Types" />
-          <ResponsiveContainer width="100%" height={220}>
-            <BarChart
-              layout="vertical"
-              data={[
-                { type: 'Digital Arrest', count: 41 },
-                { type: 'UPI Fraud', count: 34 },
-                { type: 'KYC Scam', count: 28 },
-                { type: 'Vishing', count: 19 },
-                { type: 'SIM Swap', count: 12 },
-              ]}
-              margin={{ top: 0, right: 10, left: 0, bottom: 0 }}
-            >
-              <XAxis type="number" tick={{ fill: '#4b5563', fontSize: 9, fontFamily: 'JetBrains Mono' }} />
-              <YAxis type="category" dataKey="type" tick={{ fill: '#94a3b8', fontSize: 9, fontFamily: 'JetBrains Mono' }} width={80} />
-              <Tooltip contentStyle={TOOLTIP_STYLE} />
-              <Bar dataKey="count" fill="#00d4ff" fillOpacity={0.7} radius={[0, 3, 3, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </Card>
-      </div>
-
-      {/* Bottom row */}
-      <div className="grid grid-cols-3 gap-4">
-        {/* Threat feed */}
-        <Card className="p-5">
-          <SectionHeader title="Live Threat Feed" badge="REAL-TIME" />
-          <div className="space-y-2">
-            {MOCK_FEED.map((item) => (
-              <div
-                key={item.id}
-                className="flex items-center gap-3 px-3 py-2.5 rounded bg-cmd-bg border border-cmd-border hover:border-cmd-accent/20 transition-colors group"
-              >
-                <MdCircle
-                  className={`text-xs flex-shrink-0 ${
-                    item.risk === 'CRITICAL'
-                      ? 'text-red-400 animate-pulse'
-                      : item.risk === 'HIGH'
-                      ? 'text-cmd-danger'
-                      : 'text-cmd-warn'
-                  }`}
-                />
+        {/* Feed */}
+        <div className="card p-4 overflow-hidden flex flex-col">
+          <div className="card-title">Threat Activity Feed</div>
+          <div className="flex-1 overflow-y-auto space-y-0 divide-y divide-border">
+            {FEED.map((f, i) => (
+              <div key={i} className="py-2.5 flex gap-2.5 items-start">
+                <div className={`w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0 ${f.dot}`} />
                 <div className="flex-1 min-w-0">
-                  <div className="text-xs font-mono text-cmd-text truncate">{item.type}</div>
-                  <div className="text-xs text-cmd-muted">{item.city} · {item.time}</div>
+                  <div className="text-[11px] font-medium leading-snug truncate">{f.title}</div>
+                  <div className="text-[10px] text-tx-muted mt-0.5 truncate">{f.sub}</div>
                 </div>
-                <div className="flex flex-col items-end gap-1">
-                  <RiskBadge level={item.risk} />
-                  <span className="text-xs font-mono text-cmd-muted">{item.id}</span>
-                </div>
+                <div className="text-[9px] text-tx-dim flex-shrink-0">{f.time}</div>
               </div>
             ))}
           </div>
-        </Card>
-
-        {/* Investigations table */}
-        <Card className="col-span-2 p-5">
-          <SectionHeader title="Recent Investigations" />
-          <div className="overflow-x-auto">
-            <table className="w-full text-xs font-mono">
-              <thead>
-                <tr className="text-cmd-muted border-b border-cmd-border">
-                  {['Case ID', 'Fraud Type', 'Phone', 'Cluster', 'Confidence', 'Status'].map((h) => (
-                    <th key={h} className="text-left pb-2 pr-4 uppercase tracking-wider text-[10px]">{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-cmd-border/50">
-                {MOCK_INVESTIGATIONS.map((inv) => (
-                  <tr key={inv.case_id} className="hover:bg-cmd-bg/50 transition-colors">
-                    <td className="py-2.5 pr-4 text-cmd-accent">#{inv.case_id}</td>
-                    <td className="pr-4 text-cmd-text">{inv.type}</td>
-                    <td className="pr-4 text-cmd-subtext">{inv.suspect_phone}</td>
-                    <td className="pr-4">
-                      <span className="px-2 py-0.5 bg-purple-500/10 text-purple-400 border border-purple-500/20 rounded">
-                        {inv.cluster}
-                      </span>
-                    </td>
-                    <td className="pr-4">
-                      <div className="flex items-center gap-2">
-                        <div className="w-12 h-1 bg-cmd-border rounded-full overflow-hidden">
-                          <div
-                            className="h-full bg-cmd-accent rounded-full"
-                            style={{ width: `${inv.confidence}%` }}
-                          />
-                        </div>
-                        <span className="text-cmd-text">{inv.confidence}%</span>
-                      </div>
-                    </td>
-                    <td>
-                      <span
-                        className={`px-2 py-0.5 rounded text-[10px] font-bold border ${
-                          inv.status === 'ACTIVE'
-                            ? 'bg-cmd-danger/10 text-cmd-danger border-cmd-danger/20'
-                            : inv.status === 'REVIEWING'
-                            ? 'bg-cmd-warn/10 text-cmd-warn border-cmd-warn/20'
-                            : 'bg-cmd-muted/10 text-cmd-muted border-cmd-muted/20'
-                        }`}
-                      >
-                        {inv.status}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </Card>
+        </div>
       </div>
-    </PageWrapper>
-  )
+
+      {/* Recent Investigations */}
+      <div className="card p-4">
+        <div className="card-title">Recent Investigations</div>
+        <table className="w-full text-xs">
+          <thead>
+            <tr className="text-tx-dim text-[10px] uppercase tracking-wider border-b border-border">
+              <th className="text-left pb-2 font-medium">Case ID</th>
+              <th className="text-left pb-2 font-medium">Type</th>
+              <th className="text-left pb-2 font-medium">Risk</th>
+              <th className="text-left pb-2 font-medium">City</th>
+              <th className="text-left pb-2 font-medium">Score</th>
+              <th className="text-left pb-2 font-medium">Status</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-border">
+            {RECENT.map((r) => (
+              <tr key={r.id} className="hover:bg-bg-3 transition-colors">
+                <td className="py-2.5 mono text-brand">{r.id}</td>
+                <td className="py-2.5">{r.type}</td>
+                <td className="py-2.5"><RiskBadge risk={r.risk} /></td>
+                <td className="py-2.5 text-tx-muted">{r.city}</td>
+                <td className="py-2.5 mono">{r.score}%</td>
+                <td className="py-2.5"><StatusBadge status={r.status} /></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
 }

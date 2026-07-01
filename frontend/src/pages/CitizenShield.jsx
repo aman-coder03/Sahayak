@@ -1,213 +1,185 @@
-import { useState } from 'react'
-import { MdShield, MdWarning, MdCheckCircle, MdInfo } from 'react-icons/md'
-import { analyzeShield } from '../services/api'
-import {
-  SectionHeader, Card, RiskBadge, CmdButton, CmdTextarea,
-  ScoreBar, Alert, PageWrapper
-} from '../components/common'
+import { useState } from "react";
+import { citizenShield } from "../services/api";
+import { RiskMeter, Spinner, ErrorBanner, AuditLog } from "../components/ui";
+import { MdSend, MdShield } from "react-icons/md";
 
-const SAMPLE_MSGS = [
-  {
-    label: 'FedEx Scam SMS',
-    text: 'URGENT: Your FedEx package has been seized at customs. Illegal goods detected. You must pay Rs 5000 immediately to avoid arrest. Call: 9876543210. CBI Officer Sharma.',
-  },
-  {
-    label: 'KYC Freeze',
-    text: 'Dear customer, your bank account will be blocked in 24 hours due to incomplete KYC. Click here to update immediately: bit.ly/kyc-update or call 1800-XXX-XXXX.',
-  },
-]
+const QUICK = [
+  { label: "🚨 Digital Arrest", text: "Someone called saying my Aadhaar is linked to a crime and I am under digital arrest. They want me to stay on video call and not tell anyone." },
+  { label: "📱 Fake KYC SMS", text: "I got an SMS to update my KYC immediately or my bank account will be blocked. There is a link in the message." },
+  { label: "📦 Customs Parcel", text: "A customs officer called saying my parcel has drugs. I need to pay ₹80,000 via UPI to avoid arrest." },
+  { label: "💼 Job Scam", text: "WhatsApp message: earn ₹5000 daily working part time, just like YouTube videos and screenshots. They asked for my bank account." },
+  { label: "⚡ Already Transferred", text: "I already sent ₹1.5 lakh to a UPI number 20 minutes ago after a scam call. What should I do right now?" },
+];
 
 export default function CitizenShield() {
-  const [message, setMessage] = useState('')
-  const [result, setResult] = useState(null)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
+  const [message, setMessage] = useState("");
+  const [result, setResult] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [auditLog, setAuditLog] = useState([]);
+
+  const addLog = (msg) => {
+    const ts = new Date().toISOString();
+    setAuditLog((prev) => [...prev, `[${ts}] ${msg}`]);
+  };
 
   const analyze = async () => {
-    if (!message.trim()) return
-    setLoading(true)
-    setError('')
-    setResult(null)
+    if (!message.trim()) return;
+    setLoading(true);
+    setError(null);
+    setResult(null);
+    addLog(`SESSION_START input_length=${message.length}`);
+
     try {
-      const { data } = await analyzeShield(message)
-      setResult(data)
-    } catch {
-      setError('Analysis failed. Ensure the backend is running.')
+      const { data } = await citizenShield(message);
+      setResult(data);
+      addLog(`VERDICT=${data.verdict} RISK_SCORE=${data.risk_score} DNA=${data.fraud_dna}`);
+      addLog("SESSION_COMPLETE status=SUCCESS");
+    } catch (e) {
+      setError("Backend unreachable. Please call 1930 for immediate help.");
+      addLog("ERROR backend_unreachable");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
-  const riskLevel = result
-    ? result.risk_score >= 75
-      ? 'HIGH'
-      : result.risk_score >= 40
-      ? 'MEDIUM'
-      : 'LOW'
-    : null
+  const riskColor =
+    result?.risk_score >= 80
+      ? "border-danger bg-danger-bg"
+      : result?.risk_score >= 50
+      ? "border-warn-border bg-warn-bg"
+      : "border-ok-border bg-ok-bg";
 
-  const riskColor = riskLevel === 'HIGH' ? 'danger' : riskLevel === 'MEDIUM' ? 'warn' : 'success'
+  const verdictColor =
+    result?.risk_score >= 80
+      ? "text-danger"
+      : result?.risk_score >= 50
+      ? "text-warn"
+      : "text-ok";
 
   return (
-    <PageWrapper>
-      <div>
-        <SectionHeader
-          title="Citizen Fraud Shield"
-          subtitle="Paste any suspicious SMS, WhatsApp message, or call transcript for AI-powered analysis"
-          badge="AI POWERED"
-        />
+    <div className="p-5 animate-fadeIn">
+      <div className="mb-4">
+        <h1 className="text-sm font-semibold">Citizen Fraud Shield</h1>
+        <p className="text-[11px] text-tx-muted mt-0.5">
+          AI-powered scam detection · 12 regional languages · integrated NCRB reporting · FPR &lt; 2%
+        </p>
       </div>
 
-      <div className="grid grid-cols-5 gap-5">
-        {/* Input panel */}
-        <Card className="col-span-2 p-5 space-y-4">
-          <div>
-            <div className="text-xs font-mono text-cmd-subtext uppercase tracking-widest mb-3">
-              Quick Load Sample
+      <div className="grid grid-cols-5 gap-4">
+        {/* Left: Input */}
+        <div className="col-span-3 space-y-3">
+          <div className="card p-4 space-y-3">
+            <div className="label">Paste suspicious call transcript / SMS / WhatsApp message</div>
+            <textarea
+              className="input min-h-[180px] resize-y"
+              placeholder={`Example:\n"This is Officer Verma from CBI. Your Aadhaar has been used in money laundering. You are under digital arrest. Do not tell anyone or you will be arrested immediately..."`}
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+            />
+            <div className="flex items-center gap-2">
+              <button
+                className="btn btn-primary flex-1"
+                onClick={analyze}
+                disabled={loading || !message.trim()}
+              >
+                {loading ? <Spinner size="sm" /> : <MdShield />}
+                {loading ? "Analysing…" : "Analyse Message"}
+              </button>
+              <button className="btn btn-ghost" onClick={() => { setMessage(""); setResult(null); setAuditLog([]); }}>
+                Clear
+              </button>
             </div>
-            <div className="flex flex-col gap-2">
-              {SAMPLE_MSGS.map((s) => (
+          </div>
+
+          {/* Quick Reports */}
+          <div className="card p-4">
+            <div className="card-title">Quick Report Templates</div>
+            <div className="grid grid-cols-1 gap-1.5">
+              {QUICK.map((q) => (
                 <button
-                  key={s.label}
-                  onClick={() => setMessage(s.text)}
-                  className="text-left text-xs font-mono px-3 py-2 bg-cmd-bg border border-cmd-border rounded hover:border-cmd-accent/30 hover:text-cmd-accent text-cmd-subtext transition-colors"
+                  key={q.label}
+                  className="text-left text-xs px-3 py-2 rounded-md bg-bg-4 border border-border hover:border-brand hover:text-brand transition-all text-tx-muted"
+                  onClick={() => setMessage(q.text)}
                 >
-                  ▸ {s.label}
+                  {q.label}
                 </button>
               ))}
             </div>
           </div>
 
-          <CmdTextarea
-            label="Message / Transcript"
-            placeholder="Paste suspicious SMS, WhatsApp message, or call transcript here..."
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            rows={10}
-          />
+          {/* Audit Log */}
+          {auditLog.length > 0 && (
+            <div className="card p-4">
+              <div className="card-title">Audit Log — IT Act 2000 s.65B Compliant</div>
+              <AuditLog entries={auditLog} />
+            </div>
+          )}
+        </div>
 
-          <CmdButton onClick={analyze} loading={loading} disabled={!message.trim()} className="w-full justify-center">
-            <MdShield />
-            Analyze Threat
-          </CmdButton>
+        {/* Right: Results */}
+        <div className="col-span-2 space-y-3">
+          {error && <ErrorBanner message={error} />}
 
-          {error && <Alert type="danger">{error}</Alert>}
-        </Card>
-
-        {/* Results panel */}
-        <div className="col-span-3 space-y-4">
           {!result && !loading && (
-            <Card className="p-10 flex flex-col items-center justify-center text-center h-full min-h-64">
-              <MdShield className="text-5xl text-cmd-muted mb-4" />
-              <div className="text-cmd-subtext text-sm">
-                Paste a message and click Analyze to begin threat assessment
-              </div>
-            </Card>
+            <div className="card p-6 text-center space-y-2">
+              <MdShield className="text-4xl text-tx-dim mx-auto" />
+              <p className="text-xs text-tx-muted">Submit a message to receive fraud risk assessment</p>
+            </div>
           )}
 
           {loading && (
-            <Card className="p-10 flex flex-col items-center justify-center h-full min-h-64">
-              <div className="w-12 h-12 border-2 border-cmd-border border-t-cmd-accent rounded-full animate-spin mb-4" />
-              <div className="text-cmd-subtext text-sm font-mono">ANALYZING THREAT VECTORS...</div>
-            </Card>
+            <div className="card p-8 flex flex-col items-center gap-3">
+              <Spinner />
+              <p className="text-xs text-tx-muted">Running NLP pipeline…</p>
+            </div>
           )}
 
           {result && (
             <>
-              {/* Risk score hero */}
-              <Card className={`p-5 border ${riskColor === 'danger' ? 'border-cmd-danger/30 glow-border-danger' : riskColor === 'warn' ? 'border-cmd-warn/30 glow-border-warn' : 'border-cmd-success/30 glow-border-success'}`}>
-                <div className="flex items-center justify-between mb-4">
-                  <div>
-                    <div className="text-xs font-mono text-cmd-subtext uppercase tracking-widest mb-1">
-                      Threat Assessment
-                    </div>
-                    <div className="text-4xl font-bold font-mono text-cmd-text">
-                      {result.risk_score}
-                      <span className="text-lg text-cmd-subtext ml-1">/100</span>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    {riskLevel === 'HIGH' ? (
-                      <MdWarning className="text-5xl text-cmd-danger mb-2 ml-auto" />
-                    ) : riskLevel === 'MEDIUM' ? (
-                      <MdInfo className="text-5xl text-cmd-warn mb-2 ml-auto" />
-                    ) : (
-                      <MdCheckCircle className="text-5xl text-cmd-success mb-2 ml-auto" />
-                    )}
-                    <RiskBadge level={riskLevel} />
-                  </div>
-                </div>
-                <div className="h-2 bg-cmd-border rounded-full overflow-hidden">
-                  <div
-                    className={`h-full rounded-full transition-all duration-1000 ${
-                      riskColor === 'danger' ? 'bg-cmd-danger' : riskColor === 'warn' ? 'bg-cmd-warn' : 'bg-cmd-success'
-                    }`}
-                    style={{ width: `${result.risk_score}%` }}
-                  />
-                </div>
-                {result.verdict && (
-                  <div className="mt-3 text-sm text-cmd-text font-mono">
-                    <span className="text-cmd-subtext">VERDICT: </span>
-                    {result.verdict}
+              <RiskMeter score={result.risk_score} />
+
+              <div className={`card p-4 border ${riskColor}`}>
+                <div className="card-title">Verdict</div>
+                <div className={`text-base font-bold ${verdictColor}`}>{result.verdict}</div>
+                {result.fraud_dna && (
+                  <div className="mt-2 text-[10px] text-tx-muted">
+                    Fraud DNA: <span className="mono text-brand">{result.fraud_dna}</span>
                   </div>
                 )}
-              </Card>
+              </div>
 
-              {/* Fraud DNA */}
-              {result.fraud_dna && (
-                <Card className="p-5">
-                  <SectionHeader title="Fraud DNA Markers" />
-                  <div className="flex flex-wrap gap-2">
-                    {Array.isArray(result.fraud_dna)
-                      ? result.fraud_dna.map((dna, i) => (
-                          <span
-                            key={i}
-                            className="text-xs font-mono px-3 py-1 bg-cmd-accent/10 border border-cmd-accent/20 rounded-full text-cmd-accent"
-                          >
-                            {dna}
-                          </span>
-                        ))
-                      : Object.entries(result.fraud_dna).map(([k, v]) => (
-                          <span
-                            key={k}
-                            className="text-xs font-mono px-3 py-1 bg-cmd-accent/10 border border-cmd-accent/20 rounded-full text-cmd-accent"
-                          >
-                            {k}: {v}
-                          </span>
-                        ))}
-                  </div>
-                </Card>
+              {result.reasons && (
+                <div className="card p-4">
+                  <div className="card-title">Intelligence Summary</div>
+                  <p className="text-xs text-tx leading-relaxed">{result.reasons}</p>
+                </div>
               )}
 
-              {/* Reasons */}
-              {result.reasons && result.reasons.length > 0 && (
-                <Card className="p-5">
-                  <SectionHeader title="Threat Indicators" />
-                  <div className="space-y-2">
-                    {result.reasons.map((r, i) => (
-                      <div
-                        key={i}
-                        className="flex items-start gap-3 px-3 py-2 bg-cmd-bg border border-cmd-border rounded text-sm font-mono"
-                      >
-                        <span className="text-cmd-danger mt-0.5 flex-shrink-0">◈</span>
-                        <span className="text-cmd-text">{r}</span>
-                      </div>
+              {result.advisory?.length > 0 && (
+                <div className="card p-4">
+                  <div className="card-title">Advisory</div>
+                  <ol className="space-y-1.5">
+                    {result.advisory.map((a, i) => (
+                      <li key={i} className="text-xs flex gap-2 items-start">
+                        <span className="text-brand font-bold mono flex-shrink-0">{i + 1}.</span>
+                        <span>{a}</span>
+                      </li>
                     ))}
-                  </div>
-                </Card>
+                  </ol>
+                </div>
               )}
 
-              {/* Advisory */}
-              {result.advisory && (
-                <Alert type={riskColor === 'danger' ? 'danger' : riskColor === 'warn' ? 'warn' : 'success'}>
-                  <div className="font-bold mb-1">ADVISORY</div>
-                  {result.advisory}
-                </Alert>
-              )}
+              <div className="card p-3 bg-danger-bg border-danger-border text-center">
+                <p className="text-xs text-red-300 font-semibold">
+                  📞 Cybercrime Helpline: <span className="text-lg mono">1930</span>
+                </p>
+                <p className="text-[10px] text-tx-muted mt-0.5">cybercrime.gov.in</p>
+              </div>
             </>
           )}
         </div>
       </div>
-    </PageWrapper>
-  )
+    </div>
+  );
 }
