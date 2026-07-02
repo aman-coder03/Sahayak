@@ -1,26 +1,23 @@
 import axios from "axios";
 
-const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:8000",
-  timeout: 30000,
-  headers: { "Content-Type": "application/json" },
+const client = axios.create({
+  baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:8000/api",
+  timeout: 15000,
 });
 
-api.interceptors.response.use(
-  (r) => r,
-  (err) => {
-    console.error("[SAHAYAK API]", err?.response?.status, err?.message);
-    return Promise.reject(err);
-  }
-);
+export const citizenShield = (message) => client.post("/citizen-shield", { message });
 
-export const getDashboardSummary = () => api.get("/dashboard-summary");
-export const analyzeScam = (transcript) => api.post("/analyze-scam", { transcript });
-export const citizenShield = (message) => api.post("/citizen-shield", { message });
-export const generateDNA = (payload) => api.post("/generate-dna", payload);
-export const fraudNetwork = (payload) => api.post("/fraud-network", payload);
-export const copilot = (query) => api.post("/copilot", { query });
-export const generateEvidence = (case_id) => api.post("/generate-evidence", { case_id });
-export const getCrimeHotspots = () => api.get("/crime-hotspots");
+export const generateDNA = (payload) => client.post("/fraud-dna/generate", payload);
 
-export default api;
+export const fraudNetwork = (payload) => client.post("/fraud-network", payload);
+
+export const copilot = (query) => client.post("/copilot", { query });
+
+export const getCrimeHotspots = () => client.get("/crime-intelligence/hotspots");
+
+export const getDashboardSummary = () => client.get("/dashboard/summary");
+
+export const generateEvidence = (caseId) =>
+  client.get(`/evidence/generate/${caseId}`);
+
+export default client;

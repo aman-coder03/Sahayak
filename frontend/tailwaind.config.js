@@ -1,32 +1,76 @@
 /** @type {import('tailwindcss').Config} */
 export default {
-  content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
+  content: ["./index.html", "./src/**/*.{js,jsx}"],
   theme: {
     extend: {
       colors: {
-        bg: { DEFAULT: "#09090b", 2: "#111113", 3: "#18181b", 4: "#222226" },
-        border: { DEFAULT: "#27272a", 2: "#3f3f46" },
-        tx: { DEFAULT: "#f4f4f5", muted: "#71717a", dim: "#52525b" },
-        brand: { DEFAULT: "#3b82f6", dark: "#1d4ed8", glow: "#60a5fa" },
-        danger: { DEFAULT: "#ef4444", bg: "#450a0a", border: "#7f1d1d" },
-        warn: { DEFAULT: "#f59e0b", bg: "#451a03", border: "#78350f" },
-        ok: { DEFAULT: "#22c55e", bg: "#052e16", border: "#14532d" },
-        violet: { DEFAULT: "#a78bfa", bg: "#2e1065", border: "#4c1d95" },
-        cyan: "#06b6d4",
+        // Surfaces — layered slate-navy, darkest at the page, lightest at inputs
+        "bg-1": "#05070c",
+        "bg-2": "#0a0e17",
+        "bg-3": "#111726",
+        "bg-4": "#171f31",
+
+        // Hairlines
+        border: "#1c2434",
+        "border-2": "#2b3550",
+
+        // Text
+        tx: "#e7ebf5",
+        "tx-h": "#f6f8fc",
+        "tx-muted": "#8994ac",
+        "tx-dim": "#525b71",
+
+        // Signal cyan — the operator's "live" color
+        brand: "#00d4ff",
+        "brand-bg": "rgba(0, 212, 255, 0.08)",
+        "brand-border": "rgba(0, 212, 255, 0.28)",
+
+        // Status
+        danger: "#f2415a",
+        "danger-bg": "rgba(242, 65, 90, 0.08)",
+        "danger-border": "rgba(242, 65, 90, 0.3)",
+
+        warn: "#f2a93c",
+        "warn-bg": "rgba(242, 169, 60, 0.08)",
+        "warn-border": "rgba(242, 169, 60, 0.3)",
+
+        ok: "#18c58f",
+        "ok-bg": "rgba(24, 197, 143, 0.08)",
+        "ok-border": "rgba(24, 197, 143, 0.3)",
+
+        violet: "#8f6cf2",
+        "violet-bg": "rgba(143, 108, 242, 0.08)",
+        "violet-border": "rgba(143, 108, 242, 0.3)",
       },
-      fontFamily: { sans: ["Inter", "system-ui", "sans-serif"] },
+      fontFamily: {
+        sans: ["Inter", "system-ui", "sans-serif"],
+        display: ["'Space Grotesk'", "Inter", "system-ui", "sans-serif"],
+        mono: ["'JetBrains Mono'", "ui-monospace", "SFMono-Regular", "monospace"],
+      },
       boxShadow: {
-        glow: "0 0 20px rgba(59,130,246,0.15)",
-        danger: "0 0 20px rgba(239,68,68,0.15)",
-      },
-      animation: {
-        pulse2: "pulse 2s cubic-bezier(0.4,0,0.6,1) infinite",
-        fadeIn: "fadeIn .25s ease",
-        slideUp: "slideUp .3s ease",
+        glow: "0 0 0 1px rgba(0, 212, 255, 0.35), 0 0 24px rgba(0, 212, 255, 0.18)",
+        "glow-danger": "0 0 0 1px rgba(242, 65, 90, 0.35), 0 0 24px rgba(242, 65, 90, 0.18)",
+        panel: "0 1px 0 rgba(255,255,255,0.02) inset, 0 12px 24px -12px rgba(0,0,0,0.5)",
       },
       keyframes: {
         fadeIn: { from: { opacity: 0 }, to: { opacity: 1 } },
-        slideUp: { from: { opacity: 0, transform: "translateY(12px)" }, to: { opacity: 1, transform: "translateY(0)" } },
+        slideUp: {
+          from: { opacity: 0, transform: "translateY(6px)" },
+          to: { opacity: 1, transform: "translateY(0)" },
+        },
+        pulse2: {
+          "0%, 100%": { opacity: 1, boxShadow: "0 0 0 0 rgba(24,197,143,0.5)" },
+          "50%": { opacity: 0.6, boxShadow: "0 0 0 4px rgba(24,197,143,0)" },
+        },
+        scan: {
+          "0%": { backgroundPosition: "0 0" },
+          "100%": { backgroundPosition: "0 40px" },
+        },
+      },
+      animation: {
+        fadeIn: "fadeIn 0.35s ease-out both",
+        slideUp: "slideUp 0.35s cubic-bezier(0.16,1,0.3,1) both",
+        pulse2: "pulse2 2s ease-in-out infinite",
       },
     },
   },
