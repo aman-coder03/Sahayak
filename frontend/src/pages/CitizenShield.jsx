@@ -171,7 +171,7 @@ export default function CitizenShield() {
               )}
 
               <div className="card p-3 bg-danger-bg border-danger-border text-center">
-                <p className="text-xs text-red-300 font-semibold">
+                <p className="text-xs text-danger font-semibold">
                   📞 Cybercrime Helpline: <span className="text-lg mono">1930</span>
                 </p>
                 <p className="text-[10px] text-tx-muted mt-0.5">cybercrime.gov.in</p>

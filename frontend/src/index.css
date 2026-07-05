@@ -1,61 +1,131 @@
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap");
 @import "tailwindcss";
 
-/* ---------------------------------------------------------------------
-   Design tokens — Tailwind v4 is CSS-first: colors, fonts, shadows and
-   custom animations declared here automatically become utility classes
-   (e.g. --color-brand generates bg-brand / text-brand / border-brand).
---------------------------------------------------------------------- */
+/* =======================================================================
+   THEME TOKENS — raw CSS variables switched by [data-theme].
+   A strict palette: black / white / grayscale for structure, red as the
+   single accent — used for brand, alerts and severity. Nothing else.
+======================================================================= */
+:root {
+  --raw-bg-1: #030304;
+  --raw-bg-2: #0b0b0c;
+  --raw-bg-3: #131314;
+  --raw-bg-4: #1c1c1e;
+
+  --raw-border: #26262a;
+  --raw-border-2: #38383c;
+
+  --raw-tx: #efeff0;
+  --raw-tx-h: #ffffff;
+  --raw-tx-muted: #a0a0a4;
+  --raw-tx-dim: #6b6b70;
+
+  --raw-brand: #e0293e;
+  --raw-brand-bg: rgba(224, 41, 62, 0.12);
+  --raw-brand-border: rgba(224, 41, 62, 0.35);
+
+  --raw-danger: #e0293e;
+  --raw-danger-bg: rgba(224, 41, 62, 0.12);
+  --raw-danger-border: rgba(224, 41, 62, 0.35);
+
+  --raw-warn: #ef6b7c;
+  --raw-warn-bg: rgba(239, 107, 124, 0.1);
+  --raw-warn-border: rgba(239, 107, 124, 0.3);
+
+  --raw-ok: #b6b6ba;
+  --raw-ok-bg: rgba(182, 182, 186, 0.08);
+  --raw-ok-border: rgba(182, 182, 186, 0.25);
+
+  --raw-violet: #6e6e73;
+  --raw-violet-bg: rgba(110, 110, 115, 0.12);
+  --raw-violet-border: rgba(110, 110, 115, 0.3);
+
+  --raw-grid: rgba(224, 41, 62, 0.05);
+  --raw-scanline: rgba(224, 41, 62, 0.014);
+}
+
+[data-theme="light"] {
+  --raw-bg-1: #ffffff;
+  --raw-bg-2: #f7f7f8;
+  --raw-bg-3: #efeff0;
+  --raw-bg-4: #e7e7e9;
+
+  --raw-border: #dfdfe2;
+  --raw-border-2: #c9c9cd;
+
+  --raw-tx: #19191b;
+  --raw-tx-h: #000000;
+  --raw-tx-muted: #57575c;
+  --raw-tx-dim: #86868b;
+
+  --raw-brand: #d81b32;
+  --raw-brand-bg: rgba(216, 27, 50, 0.07);
+  --raw-brand-border: rgba(216, 27, 50, 0.28);
+
+  --raw-danger: #d81b32;
+  --raw-danger-bg: rgba(216, 27, 50, 0.07);
+  --raw-danger-border: rgba(216, 27, 50, 0.28);
+
+  --raw-warn: #c8455a;
+  --raw-warn-bg: rgba(200, 69, 90, 0.08);
+  --raw-warn-border: rgba(200, 69, 90, 0.25);
+
+  --raw-ok: #6b6b70;
+  --raw-ok-bg: rgba(107, 107, 112, 0.07);
+  --raw-ok-border: rgba(107, 107, 112, 0.22);
+
+  --raw-violet: #47474c;
+  --raw-violet-bg: rgba(71, 71, 76, 0.07);
+  --raw-violet-border: rgba(71, 71, 76, 0.22);
+
+  --raw-grid: rgba(216, 27, 50, 0.045);
+  --raw-scanline: rgba(216, 27, 50, 0.012);
+}
+
+/* Map raw variables into Tailwind's theme so bg-bg-2 / text-brand / etc.
+   keep working exactly as before, but now resolve at runtime per theme. */
 @theme {
-  /* Surfaces — layered slate-navy, darkest at the page, lightest at inputs */
-  --color-bg-1: #05070c;
-  --color-bg-2: #0a0e17;
-  --color-bg-3: #111726;
-  --color-bg-4: #171f31;
+  --color-bg-1: var(--raw-bg-1);
+  --color-bg-2: var(--raw-bg-2);
+  --color-bg-3: var(--raw-bg-3);
+  --color-bg-4: var(--raw-bg-4);
 
-  /* Hairlines */
-  --color-border: #1c2434;
-  --color-border-2: #2b3550;
+  --color-border: var(--raw-border);
+  --color-border-2: var(--raw-border-2);
 
-  /* Text */
-  --color-tx: #e7ebf5;
-  --color-tx-h: #f6f8fc;
-  --color-tx-muted: #8994ac;
-  --color-tx-dim: #525b71;
+  --color-tx: var(--raw-tx);
+  --color-tx-h: var(--raw-tx-h);
+  --color-tx-muted: var(--raw-tx-muted);
+  --color-tx-dim: var(--raw-tx-dim);
 
-  /* Signal cyan — the operator's "live" color */
-  --color-brand: #00d4ff;
-  --color-brand-bg: rgba(0, 212, 255, 0.08);
-  --color-brand-border: rgba(0, 212, 255, 0.28);
+  --color-brand: var(--raw-brand);
+  --color-brand-bg: var(--raw-brand-bg);
+  --color-brand-border: var(--raw-brand-border);
 
-  /* Status */
-  --color-danger: #f2415a;
-  --color-danger-bg: rgba(242, 65, 90, 0.08);
-  --color-danger-border: rgba(242, 65, 90, 0.3);
+  --color-danger: var(--raw-danger);
+  --color-danger-bg: var(--raw-danger-bg);
+  --color-danger-border: var(--raw-danger-border);
 
-  --color-warn: #f2a93c;
-  --color-warn-bg: rgba(242, 169, 60, 0.08);
-  --color-warn-border: rgba(242, 169, 60, 0.3);
+  --color-warn: var(--raw-warn);
+  --color-warn-bg: var(--raw-warn-bg);
+  --color-warn-border: var(--raw-warn-border);
 
-  --color-ok: #18c58f;
-  --color-ok-bg: rgba(24, 197, 143, 0.08);
-  --color-ok-border: rgba(24, 197, 143, 0.3);
+  --color-ok: var(--raw-ok);
+  --color-ok-bg: var(--raw-ok-bg);
+  --color-ok-border: var(--raw-ok-border);
 
-  --color-violet: #8f6cf2;
-  --color-violet-bg: rgba(143, 108, 242, 0.08);
-  --color-violet-border: rgba(143, 108, 242, 0.3);
+  --color-violet: var(--raw-violet);
+  --color-violet-bg: var(--raw-violet-bg);
+  --color-violet-border: var(--raw-violet-border);
 
-  /* Type */
   --font-sans: "Inter", system-ui, sans-serif;
   --font-display: "Space Grotesk", "Inter", system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
 
-  /* Shadows */
-  --shadow-glow: 0 0 0 1px rgba(0, 212, 255, 0.35), 0 0 24px rgba(0, 212, 255, 0.18);
-  --shadow-glow-danger: 0 0 0 1px rgba(242, 65, 90, 0.35), 0 0 24px rgba(242, 65, 90, 0.18);
+  --shadow-glow: 0 0 0 1px var(--raw-brand-border), 0 0 24px var(--raw-brand-bg);
+  --shadow-glow-danger: 0 0 0 1px var(--raw-danger-border), 0 0 24px var(--raw-danger-bg);
   --shadow-panel: 0 1px 0 rgba(255, 255, 255, 0.02) inset, 0 12px 24px -12px rgba(0, 0, 0, 0.5);
 
-  /* Animations */
   --animate-fadeIn: fadeIn 0.35s ease-out both;
   --animate-slideUp: slideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
   --animate-pulse2: pulse2 2s ease-in-out infinite;
@@ -70,31 +140,33 @@
   to { opacity: 1; transform: translateY(0); }
 }
 @keyframes pulse2 {
-  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(24, 197, 143, 0.5); }
-  50% { opacity: 0.6; box-shadow: 0 0 0 4px rgba(24, 197, 143, 0); }
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 var(--raw-danger-border); }
+  50% { opacity: 0.6; box-shadow: 0 0 0 4px rgba(0, 0, 0, 0); }
 }
 
-/* ---------------------------------------------------------------------
+/* =======================================================================
    Base
---------------------------------------------------------------------- */
+======================================================================= */
 @layer base {
   * {
     scrollbar-width: thin;
-    scrollbar-color: #2b3550 #05070c;
+    scrollbar-color: var(--raw-border-2) var(--raw-bg-1);
   }
   *::-webkit-scrollbar { width: 6px; height: 6px; }
-  *::-webkit-scrollbar-track { background: #05070c; }
-  *::-webkit-scrollbar-thumb { background: #2b3550; border-radius: 3px; }
-  *::-webkit-scrollbar-thumb:hover { background: #00d4ff55; }
+  *::-webkit-scrollbar-track { background: var(--raw-bg-1); }
+  *::-webkit-scrollbar-thumb { background: var(--raw-border-2); border-radius: 3px; }
+  *::-webkit-scrollbar-thumb:hover { background: var(--raw-brand); }
 
   html { color-scheme: dark; }
+  html[data-theme="light"] { color-scheme: light; }
 
   body {
-    background-color: #05070c;
-    color: #e7ebf5;
+    background-color: var(--raw-bg-1);
+    color: var(--raw-tx);
     font-family: "Inter", system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
+    transition: background-color 0.2s ease, color 0.2s ease;
   }
 
   h1, h2, h3 {
@@ -103,31 +175,31 @@
   }
 
   :focus-visible {
-    outline: 2px solid #00d4ff;
+    outline: 2px solid var(--raw-brand);
     outline-offset: 2px;
   }
 }
 
-/* ---------------------------------------------------------------------
+/* =======================================================================
    Components
---------------------------------------------------------------------- */
+======================================================================= */
 @layer components {
   .cmd-grid {
-    background-image: linear-gradient(rgba(0, 212, 255, 0.035) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(0, 212, 255, 0.035) 1px, transparent 1px);
+    background-image: linear-gradient(var(--raw-grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--raw-grid) 1px, transparent 1px);
     background-size: 32px 32px;
   }
 
-  .glow-border { box-shadow: 0 0 0 1px rgba(0, 212, 255, 0.15), 0 0 20px rgba(0, 212, 255, 0.05); }
-  .glow-border-danger { box-shadow: 0 0 0 1px rgba(242, 65, 90, 0.3), 0 0 20px rgba(242, 65, 90, 0.08); }
-  .glow-border-warn { box-shadow: 0 0 0 1px rgba(242, 169, 60, 0.3), 0 0 20px rgba(242, 169, 60, 0.08); }
-  .glow-border-success { box-shadow: 0 0 0 1px rgba(24, 197, 143, 0.3), 0 0 20px rgba(24, 197, 143, 0.08); }
+  .glow-border { box-shadow: 0 0 0 1px var(--raw-brand-border), 0 0 20px var(--raw-brand-bg); }
+  .glow-border-danger { box-shadow: 0 0 0 1px var(--raw-danger-border), 0 0 20px var(--raw-danger-bg); }
+  .glow-border-warn { box-shadow: 0 0 0 1px var(--raw-warn-border), 0 0 20px var(--raw-warn-bg); }
+  .glow-border-success { box-shadow: 0 0 0 1px var(--raw-ok-border), 0 0 20px var(--raw-ok-bg); }
 
   .scanline::after {
     content: "";
     position: absolute;
     inset: 0;
-    background: linear-gradient(transparent 50%, rgba(0, 212, 255, 0.012) 50%);
+    background: linear-gradient(transparent 50%, var(--raw-scanline) 50%);
     background-size: 100% 4px;
     pointer-events: none;
     z-index: 1;
@@ -140,15 +212,23 @@
     position: absolute;
     width: 10px;
     height: 10px;
-    border-color: #00d4ff;
+    border-color: var(--raw-brand);
     opacity: 0.6;
   }
   .bracket::before { top: -1px; left: -1px; border-top: 2px solid; border-left: 2px solid; }
   .bracket::after { bottom: -1px; right: -1px; border-bottom: 2px solid; border-right: 2px solid; }
 
+  /* A fixed dark "console" surface for data-visualisation canvases (the
+     force-graph) that intentionally stays dark in both themes, the way a
+     terminal or telemetry panel would in most SOC tooling. */
+  .console-surface {
+    background: #08080a;
+    border-color: #232326;
+  }
+
   .card {
     @apply relative rounded-lg border border-border bg-bg-2;
-    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.02) inset, 0 10px 20px -14px rgba(0, 0, 0, 0.6);
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.02) inset, 0 10px 20px -14px rgba(0, 0, 0, 0.45);
   }
   .card-title { @apply mb-2 text-[10px] font-semibold uppercase tracking-wider text-tx-dim; }
 
@@ -156,11 +236,11 @@
 
   .input { @apply w-full rounded-md border border-border bg-bg-4 px-3 py-2.5 text-xs text-tx outline-none transition-colors placeholder:text-tx-dim; }
   .input:hover { @apply border-border-2; }
-  .input:focus { @apply border-brand; box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.12); }
+  .input:focus { @apply border-brand; box-shadow: 0 0 0 3px var(--raw-brand-bg); }
 
   .btn { @apply inline-flex items-center justify-center gap-2 rounded-md px-4 py-2.5 text-xs font-semibold tracking-wide transition-all duration-150 disabled:cursor-not-allowed disabled:opacity-40; }
-  .btn-primary { @apply bg-brand text-[#031018]; }
-  .btn-primary:hover:not(:disabled) { box-shadow: 0 0 0 1px rgba(0, 212, 255, 0.4), 0 0 20px rgba(0, 212, 255, 0.35); transform: translateY(-1px); }
+  .btn-primary { @apply bg-brand text-white; }
+  .btn-primary:hover:not(:disabled) { box-shadow: 0 0 0 1px var(--raw-brand-border), 0 0 20px var(--raw-brand-bg); transform: translateY(-1px); }
   .btn-ghost { @apply border border-border bg-bg-3 text-tx-muted; }
   .btn-ghost:hover:not(:disabled) { @apply border-border-2 text-tx; }
 

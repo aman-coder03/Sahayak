@@ -50,9 +50,9 @@ export function KpiCard({ label, value, sub, color = "text-brand", icon }) {
 export function RiskMeter({ score = 0 }) {
   const clamped = Math.max(0, Math.min(100, score));
   const tone =
-    clamped >= 80 ? { stroke: "#f2415a", text: "text-danger", label: "CRITICAL" } :
-    clamped >= 50 ? { stroke: "#f2a93c", text: "text-warn", label: "ELEVATED" } :
-    { stroke: "#18c58f", text: "text-ok", label: "LOW" };
+    clamped >= 80 ? { stroke: "var(--raw-danger)", text: "text-danger", label: "CRITICAL" } :
+    clamped >= 50 ? { stroke: "var(--raw-warn)", text: "text-warn", label: "ELEVATED" } :
+    { stroke: "var(--raw-ok)", text: "text-ok", label: "LOW" };
 
   const r = 54;
   const c = 2 * Math.PI * r;
@@ -62,7 +62,7 @@ export function RiskMeter({ score = 0 }) {
     <div className="card p-5 flex items-center gap-5">
       <div className="relative flex-shrink-0" style={{ width: 128, height: 128 }}>
         <svg width="128" height="128" viewBox="0 0 128 128" className="-rotate-90">
-          <circle cx="64" cy="64" r={r} fill="none" stroke="#1c2434" strokeWidth="10" />
+          <circle cx="64" cy="64" r={r} fill="none" stroke="var(--raw-border)" strokeWidth="10" />
           <circle
             cx="64"
             cy="64"

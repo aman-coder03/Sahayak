@@ -171,7 +171,7 @@ export default function FraudDNALab() {
           {result && (
             <div className="space-y-3 animate-slideUp">
               {/* DNA Identity Card */}
-              <div className="card p-5 border border-brand bg-blue-950/30">
+              <div className="card p-5 border border-brand-border bg-brand-bg">
                 <div className="flex items-start justify-between mb-4">
                   <div>
                     <div className="card-title">Fraud DNA Identity</div>
