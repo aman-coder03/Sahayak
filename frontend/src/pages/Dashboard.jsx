@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { getDashboardSummary, getCrimeHotspots } from "../services/api";
 import { KpiCard, Spinner, ErrorBanner } from "../components/ui";
+import { useTheme } from "../hooks/useTheme";
+import { getChartColors } from "../lib/chartTheme";
 import {
   AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
 } from "recharts";
@@ -51,6 +53,8 @@ function StatusBadge({ status }) {
 }
 
 export default function Dashboard() {
+  const { theme } = useTheme();
+  const c = getChartColors(theme);
   const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -112,23 +116,23 @@ export default function Dashboard() {
             <AreaChart data={MOCK_CHART} margin={{ top: 4, right: 8, left: -20, bottom: 0 }}>
               <defs>
                 <linearGradient id="gCases" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                  <stop offset="5%" stopColor={c.neutral} stopOpacity={0.3} />
+                  <stop offset="95%" stopColor={c.neutral} stopOpacity={0} />
                 </linearGradient>
                 <linearGradient id="gHigh" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#ef4444" stopOpacity={0.4} />
-                  <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
+                  <stop offset="5%" stopColor={c.danger} stopOpacity={0.4} />
+                  <stop offset="95%" stopColor={c.danger} stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid stroke="#27272a" strokeDasharray="3 3" />
-              <XAxis dataKey="time" tick={{ fill: "#71717a", fontSize: 10 }} />
-              <YAxis tick={{ fill: "#71717a", fontSize: 10 }} />
+              <CartesianGrid stroke={c.grid} strokeDasharray="3 3" />
+              <XAxis dataKey="time" tick={{ fill: c.axis, fontSize: 10 }} />
+              <YAxis tick={{ fill: c.axis, fontSize: 10 }} />
               <Tooltip
-                contentStyle={{ background: "#18181b", border: "1px solid #27272a", borderRadius: 6, fontSize: 11 }}
-                labelStyle={{ color: "#a1a1aa" }}
+                contentStyle={{ background: c.tooltipBg, border: `1px solid ${c.tooltipBorder}`, borderRadius: 6, fontSize: 11 }}
+                labelStyle={{ color: c.tooltipText }}
               />
-              <Area type="monotone" dataKey="cases" stroke="#3b82f6" fill="url(#gCases)" strokeWidth={2} name="Total" />
-              <Area type="monotone" dataKey="high" stroke="#ef4444" fill="url(#gHigh)" strokeWidth={2} name="High Risk" />
+              <Area type="monotone" dataKey="cases" stroke={c.neutral} fill="url(#gCases)" strokeWidth={2} name="Total" />
+              <Area type="monotone" dataKey="high" stroke={c.danger} fill="url(#gHigh)" strokeWidth={2} name="High Risk" />
             </AreaChart>
           </ResponsiveContainer>
         </div>

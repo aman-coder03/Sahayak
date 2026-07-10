@@ -3,7 +3,8 @@ import { fraudNetwork } from "../services/api";
 import { Spinner, ErrorBanner, AuditLog, ScoreBar } from "../components/ui";
 import * as d3 from "d3";
 
-const NODE_COLOR = { Phone: "#3b82f6", UPI: "#f59e0b", FraudCluster: "#ef4444" };
+const NODE_COLOR = { Phone: "#d9d9db", UPI: "#6f6f74", FraudCluster: "#e0293e" };
+const LABEL_COLOR = { Phone: "#0a0a0a", UPI: "#ffffff", FraudCluster: "#ffffff" };
 const NODE_R = { Phone: 22, UPI: 18, FraudCluster: 26 };
 
 function NetworkGraph({ nodes, edges }) {
@@ -21,7 +22,7 @@ function NetworkGraph({ nodes, edges }) {
       .attr("id", "arrow").attr("viewBox", "0 0 10 10")
       .attr("refX", 28).attr("refY", 5)
       .attr("markerWidth", 5).attr("markerHeight", 5).attr("orient", "auto")
-      .append("path").attr("d", "M0,0L10,5L0,10Z").attr("fill", "#3f3f46");
+      .append("path").attr("d", "M0,0L10,5L0,10Z").attr("fill", "#3a3a3d");
 
     const g = svg.append("g");
     svg.call(d3.zoom().scaleExtent([0.3, 3]).on("zoom", (e) => g.attr("transform", e.transform)));
@@ -45,7 +46,7 @@ function NetworkGraph({ nodes, edges }) {
       .force("collision", d3.forceCollide(40));
 
     const link = g.selectAll("line").data(simEdges).enter().append("line")
-      .attr("stroke", "#3f3f46").attr("stroke-width", 1.5).attr("marker-end", "url(#arrow)");
+      .attr("stroke", "#3a3a3d").attr("stroke-width", 1.5).attr("marker-end", "url(#arrow)");
 
     const node = g.selectAll("g.node").data(simNodes).enter().append("g")
       .attr("class", "node").attr("cursor", "pointer")
@@ -57,15 +58,15 @@ function NetworkGraph({ nodes, edges }) {
 
     node.append("circle")
       .attr("r", (d) => NODE_R[d.type] ?? 16)
-      .attr("fill", (d) => NODE_COLOR[d.type] ?? "#6b7280")
-      .attr("fill-opacity", 0.85)
-      .attr("stroke", (d) => NODE_COLOR[d.type] ?? "#6b7280")
-      .attr("stroke-width", 2).attr("stroke-opacity", 0.4);
+      .attr("fill", (d) => NODE_COLOR[d.type] ?? "#6f6f74")
+      .attr("fill-opacity", 0.92)
+      .attr("stroke", (d) => NODE_COLOR[d.type] ?? "#6f6f74")
+      .attr("stroke-width", 2).attr("stroke-opacity", 0.5);
 
     node.append("text")
       .text((d) => d.id.length > 14 ? d.id.slice(0, 12) + "…" : d.id)
       .attr("text-anchor", "middle").attr("dy", (d) => (NODE_R[d.type] ?? 16) + 14)
-      .attr("fill", "#a1a1aa").attr("font-size", 9).attr("font-family", "Inter,sans-serif")
+      .attr("fill", "#b5b5b9").attr("font-size", 9).attr("font-family", "Inter,sans-serif")
       .attr("pointer-events", "none");
 
     node.append("text")
@@ -189,7 +190,7 @@ export default function FraudNetwork() {
                   {result.nodes?.map((n, i) => (
                     <div key={i} className="flex items-center justify-between text-xs p-2 bg-bg-4 rounded-md border border-border">
                       <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: NODE_COLOR[n.type] ?? "#6b7280" }} />
+                        <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: NODE_COLOR[n.type] ?? "#6f6f74", boxShadow: "inset 0 0 0 1px rgba(120,120,120,0.35)" }} />
                         <span className="mono truncate max-w-[120px]" title={n.id}>{n.id}</span>
                       </div>
                       <span className="text-tx-muted text-[10px]">{n.type}</span>
@@ -226,7 +227,7 @@ export default function FraudNetwork() {
         <div className="col-span-3 flex flex-col gap-3">
           {error && <ErrorBanner message={error} />}
 
-          <div className="card flex-1 overflow-hidden relative">
+          <div className="card console-surface flex-1 overflow-hidden relative">
             {!result && !loading && (
               <div className="absolute inset-0 flex flex-col items-center justify-center text-tx-muted gap-3">
                 <div className="text-4xl">🕸</div>
@@ -246,7 +247,7 @@ export default function FraudNetwork() {
           <div className="card p-3 flex items-center gap-6">
             {Object.entries(NODE_COLOR).map(([type, color]) => (
               <div key={type} className="flex items-center gap-2 text-xs text-tx-muted">
-                <div className="w-3 h-3 rounded-full" style={{ background: color }} />
+                <div className="w-3 h-3 rounded-full" style={{ background: color, boxShadow: "inset 0 0 0 1px rgba(120,120,120,0.35)" }} />
                 {type}
               </div>
             ))}

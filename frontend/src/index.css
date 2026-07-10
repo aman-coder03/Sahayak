@@ -1,63 +1,295 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap");
+@import "tailwindcss";
 
+/* =======================================================================
+   THEME TOKENS — professional palette: white / black / gray for
+   structure, red as the SINGLE accent color (brand, alerts, severity).
+   No glow, no neon, no scanlines — flat, clean, enterprise-grade.
+======================================================================= */
+
+/* LIGHT is now the default / primary theme (professional dashboards
+   read as "serious" in light mode — dark stays available as [data-theme="dark"]) */
+:root {
+  /* Pure white surfaces, subtle gray only for layering/separation */
+  --raw-bg-1: #ffffff;
+  --raw-bg-2: #ffffff;
+  --raw-bg-3: #f7f7f8;
+  --raw-bg-4: #f0f0f1;
+
+  --raw-border: #e5e5e7;
+  --raw-border-2: #d4d4d7;
+
+  /* Black text, gray only for de-emphasized labels */
+  --raw-tx: #000000;
+  --raw-tx-h: #000000;
+  --raw-tx-muted: #57575c;
+  --raw-tx-dim: #8a8a8f;
+
+  /* Red used sparingly: brand mark, high-severity signals only */
+  --raw-brand: #d0112b;
+  --raw-brand-bg: rgba(208, 17, 43, 0.05);
+  --raw-brand-border: rgba(208, 17, 43, 0.22);
+
+  --raw-danger: #d0112b;
+  --raw-danger-bg: rgba(208, 17, 43, 0.05);
+  --raw-danger-border: rgba(208, 17, 43, 0.22);
+
+  /* warn/ok/violet all neutral grayscale — red stays reserved for danger */
+  --raw-warn: #57575c;
+  --raw-warn-bg: rgba(0, 0, 0, 0.04);
+  --raw-warn-border: rgba(0, 0, 0, 0.14);
+
+  --raw-ok: #57575c;
+  --raw-ok-bg: rgba(0, 0, 0, 0.03);
+  --raw-ok-border: rgba(0, 0, 0, 0.12);
+
+  --raw-violet: #57575c;
+  --raw-violet-bg: rgba(0, 0, 0, 0.03);
+  --raw-violet-border: rgba(0, 0, 0, 0.12);
+
+  --raw-grid: rgba(0, 0, 0, 0.025);
+  --raw-scanline: transparent;
+}
+
+[data-theme="dark"] {
+  --raw-bg-1: #0a0a0b;
+  --raw-bg-2: #131315;
+  --raw-bg-3: #1a1a1d;
+  --raw-bg-4: #222226;
+
+  --raw-border: #2a2a2e;
+  --raw-border-2: #3a3a3f;
+
+  --raw-tx: #f4f4f5;
+  --raw-tx-h: #ffffff;
+  --raw-tx-muted: #a1a1a6;
+  --raw-tx-dim: #71717a;
+
+  --raw-brand: #e0293e;
+  --raw-brand-bg: rgba(224, 41, 62, 0.1);
+  --raw-brand-border: rgba(224, 41, 62, 0.3);
+
+  --raw-danger: #e0293e;
+  --raw-danger-bg: rgba(224, 41, 62, 0.1);
+  --raw-danger-border: rgba(224, 41, 62, 0.3);
+
+  --raw-warn: #e0293e;
+  --raw-warn-bg: rgba(224, 41, 62, 0.08);
+  --raw-warn-border: rgba(224, 41, 62, 0.22);
+
+  --raw-ok: #a1a1a6;
+  --raw-ok-bg: rgba(161, 161, 166, 0.06);
+  --raw-ok-border: rgba(161, 161, 166, 0.2);
+
+  --raw-violet: #a1a1a6;
+  --raw-violet-bg: rgba(161, 161, 166, 0.06);
+  --raw-violet-border: rgba(161, 161, 166, 0.2);
+
+  --raw-grid: rgba(255, 255, 255, 0.02);
+  --raw-scanline: transparent;
+}
+
+/* Map raw variables into Tailwind's theme */
+@theme {
+  --color-bg-1: var(--raw-bg-1);
+  --color-bg-2: var(--raw-bg-2);
+  --color-bg-3: var(--raw-bg-3);
+  --color-bg-4: var(--raw-bg-4);
+
+  --color-border: var(--raw-border);
+  --color-border-2: var(--raw-border-2);
+
+  --color-tx: var(--raw-tx);
+  --color-tx-h: var(--raw-tx-h);
+  --color-tx-muted: var(--raw-tx-muted);
+  --color-tx-dim: var(--raw-tx-dim);
+
+  --color-brand: var(--raw-brand);
+  --color-brand-bg: var(--raw-brand-bg);
+  --color-brand-border: var(--raw-brand-border);
+
+  --color-danger: var(--raw-danger);
+  --color-danger-bg: var(--raw-danger-bg);
+  --color-danger-border: var(--raw-danger-border);
+
+  --color-warn: var(--raw-warn);
+  --color-warn-bg: var(--raw-warn-bg);
+  --color-warn-border: var(--raw-warn-border);
+
+  --color-ok: var(--raw-ok);
+  --color-ok-bg: var(--raw-ok-bg);
+  --color-ok-border: var(--raw-ok-border);
+
+  --color-violet: var(--raw-violet);
+  --color-violet-bg: var(--raw-violet-bg);
+  --color-violet-border: var(--raw-violet-border);
+
+  --font-sans: "Inter", system-ui, sans-serif;
+  --font-display: "Space Grotesk", "Inter", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+
+  /* Flat, subtle shadows only — no glow/neon anywhere */
+  --shadow-glow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-glow-danger: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-panel: 0 1px 2px rgba(0, 0, 0, 0.04), 0 1px 0 rgba(0, 0, 0, 0.02);
+
+  --animate-fadeIn: fadeIn 0.2s ease-out both;
+  --animate-slideUp: slideUp 0.2s cubic-bezier(0.16, 1, 0.3, 1) both;
+  --animate-pulse2: pulse2 2s ease-in-out infinite;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes pulse2 {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* =======================================================================
+   Base
+======================================================================= */
 @layer base {
   * {
     scrollbar-width: thin;
-    scrollbar-color: #1e2535 #07080d;
+    scrollbar-color: var(--raw-border-2) var(--raw-bg-1);
   }
-  *::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-  }
-  *::-webkit-scrollbar-track {
-    background: #07080d;
-  }
-  *::-webkit-scrollbar-thumb {
-    background: #1e2535;
-    border-radius: 3px;
-  }
-  *::-webkit-scrollbar-thumb:hover {
-    background: #00d4ff33;
-  }
+  *::-webkit-scrollbar { width: 6px; height: 6px; }
+  *::-webkit-scrollbar-track { background: var(--raw-bg-1); }
+  *::-webkit-scrollbar-thumb { background: var(--raw-border-2); border-radius: 3px; }
+  *::-webkit-scrollbar-thumb:hover { background: var(--raw-tx-dim); }
+
+  html { color-scheme: light; }
+  html[data-theme="dark"] { color-scheme: dark; }
+
   body {
-    background-color: #07080d;
-    color: #e2e8f0;
-    font-family: 'Inter', system-ui, sans-serif;
+    background-color: var(--raw-bg-1);
+    color: var(--raw-tx);
+    font-family: "Inter", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    transition: background-color 0.15s ease, color 0.15s ease;
+  }
+
+  h1, h2, h3 {
+    font-family: "Space Grotesk", "Inter", system-ui, sans-serif;
+    letter-spacing: -0.01em;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--raw-brand);
+    outline-offset: 2px;
   }
 }
 
+/* =======================================================================
+   Components — flat, minimal, no glow/scanline/neon
+======================================================================= */
 @layer components {
   .cmd-grid {
-    background-image: linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
-    background-size: 40px 40px;
+    background-image: linear-gradient(var(--raw-grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--raw-grid) 1px, transparent 1px);
+    background-size: 32px 32px;
   }
 
-  .glow-border {
-    box-shadow: 0 0 0 1px rgba(0, 212, 255, 0.15), 0 0 20px rgba(0, 212, 255, 0.05);
-  }
-
-  .glow-border-danger {
-    box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.3), 0 0 20px rgba(239, 68, 68, 0.08);
-  }
-
-  .glow-border-warn {
-    box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.3), 0 0 20px rgba(245, 158, 11, 0.08);
-  }
-
+  /* Kept as no-ops so existing markup using these classes doesn't break,
+     but they no longer render any glow — professional dashboards don't
+     need neon borders on badges/cards. */
+  .glow-border,
+  .glow-border-danger,
+  .glow-border-warn,
   .glow-border-success {
-    box-shadow: 0 0 0 1px rgba(16, 185, 129, 0.3), 0 0 20px rgba(16, 185, 129, 0.08);
+    box-shadow: var(--shadow-panel);
   }
 
   .scanline::after {
-    content: '';
+    content: none;
+  }
+
+  .bracket { position: relative; }
+  .bracket::before,
+  .bracket::after {
+    content: "";
     position: absolute;
-    inset: 0;
-    background: linear-gradient(transparent 50%, rgba(0,212,255,0.01) 50%);
-    background-size: 100% 4px;
-    pointer-events: none;
-    z-index: 1;
+    width: 8px;
+    height: 8px;
+    border-color: var(--raw-tx-dim);
+    opacity: 0.5;
+  }
+  .bracket::before { top: -1px; left: -1px; border-top: 1.5px solid; border-left: 1.5px solid; }
+  .bracket::after { bottom: -1px; right: -1px; border-bottom: 1.5px solid; border-right: 1.5px solid; }
+
+  /* Dark "console" surface reserved for data-viz canvases (force-graph),
+     stays dark in both themes like a terminal/telemetry panel. */
+  .console-surface {
+    background: #0a0a0b;
+    border-color: #232326;
+  }
+
+  .card {
+    @apply relative rounded-lg border border-border bg-bg-2;
+    box-shadow: var(--shadow-panel);
+  }
+  .card-title { @apply mb-2 text-[10px] font-semibold uppercase tracking-wider text-tx-dim; }
+
+  .label { @apply mb-1.5 block text-[10px] font-medium uppercase tracking-wide text-tx-dim; }
+
+  .input { @apply w-full rounded-md border border-border bg-bg-1 px-3 py-2.5 text-xs text-tx outline-none transition-colors placeholder:text-tx-dim; }
+  .input:hover { @apply border-border-2; }
+  .input:focus { @apply border-brand; box-shadow: 0 0 0 3px var(--raw-brand-bg); }
+
+  .btn { @apply inline-flex items-center justify-center gap-2 rounded-md px-4 py-2.5 text-xs font-semibold tracking-wide transition-all duration-150 disabled:cursor-not-allowed disabled:opacity-40; }
+  .btn-primary { @apply bg-brand text-white; }
+  .btn-primary:hover:not(:disabled) { filter: brightness(1.08); }
+  .btn-ghost { @apply border border-border bg-bg-1 text-tx-muted; }
+  .btn-ghost:hover:not(:disabled) { @apply border-border-2 text-tx; }
+
+  .kv { @apply flex items-center justify-between gap-3 border-b border-border py-2.5; }
+  .kv:last-child { @apply border-0 pb-0; }
+  .kv-k { @apply text-[10px] uppercase tracking-wide text-tx-dim; }
+  .kv-v { @apply text-right font-medium text-tx; }
+
+  /* Badges: red is reserved for danger/high severity only. Everything
+     else (amber/green/gray) is now grayscale so red stays meaningful. */
+  .badge-red, .badge-amber, .badge-green, .badge-gray {
+    @apply inline-flex items-center rounded px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide;
+  }
+  .badge-red { @apply border border-danger-border bg-danger-bg text-danger; }
+  .badge-amber { @apply border border-border-2 bg-bg-3 text-tx-muted; }
+  .badge-green { @apply border border-border bg-bg-2 text-tx-dim; }
+  .badge-gray { @apply border border-border bg-bg-3 text-tx-muted; }
+
+  .mono {
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-feature-settings: "tnum" 1, "zero" 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Print styles for evidence / report views */
+@media print {
+  aside,
+  header,
+  .no-print {
+    display: none !important;
+  }
+  body {
+    background: #fff !important;
+    color: #000 !important;
   }
 }

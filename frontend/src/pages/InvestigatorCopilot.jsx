@@ -101,7 +101,7 @@ export default function InvestigatorCopilot() {
                   <div
                     className={`rounded-lg px-4 py-3 text-xs leading-relaxed whitespace-pre-wrap ${
                       msg.role === "user"
-                        ? "bg-blue-950 border border-blue-900 rounded-tr-sm"
+                        ? "bg-brand-bg border border-brand-border rounded-tr-sm"
                         : msg.error
                         ? "bg-danger-bg border border-danger-border rounded-tl-sm"
                         : "bg-bg-3 border border-border rounded-tl-sm"

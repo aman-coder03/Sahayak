@@ -1,6 +1,8 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { getCrimeHotspots } from "../services/api";
 import { Spinner, ErrorBanner } from "../components/ui";
+import { useTheme } from "../hooks/useTheme";
+import { getChartColors } from "../lib/chartTheme";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Cell,
 } from "recharts";
@@ -8,7 +10,7 @@ import {
 const TYPE_COLOR = {
   digital_arrest: { bg: "bg-danger-bg", border: "border-danger-border", text: "text-danger", label: "Digital Arrest" },
   counterfeit: { bg: "bg-warn-bg", border: "border-warn-border", text: "text-warn", label: "Counterfeit ₹" },
-  upi: { bg: "bg-blue-950", border: "border-blue-900", text: "text-brand", label: "UPI Fraud" },
+  upi: { bg: "bg-bg-4", border: "border-border-2", text: "text-tx-muted", label: "UPI Fraud" },
   job_scam: { bg: "bg-violet-bg", border: "border-violet-border", text: "text-violet", label: "Job Scam" },
 };
 
@@ -25,14 +27,16 @@ const FALLBACK = [
   { city: "Ahmedabad", cases: 76, type: "job_scam", lat: 23.02, lng: 72.57 },
 ];
 
-const BAR_COLOR = (type) => {
-  if (type === "digital_arrest") return "#ef4444";
-  if (type === "counterfeit") return "#f59e0b";
-  if (type === "upi") return "#3b82f6";
-  return "#a78bfa";
+const barColor = (type, c) => {
+  if (type === "digital_arrest") return c.danger;
+  if (type === "counterfeit") return c.dangerSoft;
+  if (type === "upi") return c.mid;
+  return c.dim;
 };
 
 export default function CrimeIntelligence() {
+  const { theme } = useTheme();
+  const c = getChartColors(theme);
   const [hotspots, setHotspots] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -113,22 +117,22 @@ export default function CrimeIntelligence() {
               <div className="card-title">Complaint Density by City</div>
               <ResponsiveContainer width="100%" height={220}>
                 <BarChart data={filtered} margin={{ top: 4, right: 8, left: -20, bottom: 40 }}>
-                  <CartesianGrid stroke="#27272a" strokeDasharray="3 3" />
+                  <CartesianGrid stroke={c.grid} strokeDasharray="3 3" />
                   <XAxis
                     dataKey="city"
-                    tick={{ fill: "#71717a", fontSize: 9 }}
+                    tick={{ fill: c.axis, fontSize: 9 }}
                     angle={-35}
                     textAnchor="end"
                     interval={0}
                   />
-                  <YAxis tick={{ fill: "#71717a", fontSize: 10 }} />
+                  <YAxis tick={{ fill: c.axis, fontSize: 10 }} />
                   <Tooltip
-                    contentStyle={{ background: "#18181b", border: "1px solid #27272a", borderRadius: 6, fontSize: 11 }}
-                    labelStyle={{ color: "#a1a1aa" }}
+                    contentStyle={{ background: c.tooltipBg, border: `1px solid ${c.tooltipBorder}`, borderRadius: 6, fontSize: 11 }}
+                    labelStyle={{ color: c.tooltipText }}
                   />
                   <Bar dataKey="cases" radius={[3, 3, 0, 0]} maxBarSize={32}>
                     {filtered.map((h, i) => (
-                      <Cell key={i} fill={BAR_COLOR(h.type)} />
+                      <Cell key={i} fill={barColor(h.type, c)} />
                     ))}
                   </Bar>
                 </BarChart>
@@ -195,7 +199,7 @@ export default function CrimeIntelligence() {
 
           {/* Selected detail */}
           {selected && (
-            <div className="card p-4 border border-brand bg-blue-950/20 animate-slideUp">
+            <div className="card p-4 border border-brand-border bg-brand-bg animate-slideUp">
               <div className="flex items-center justify-between mb-3">
                 <div className="text-sm font-semibold">{selected.city} — Intelligence Summary</div>
                 <button className="text-tx-dim hover:text-tx text-xs" onClick={() => setSelected(null)}>✕</button>
