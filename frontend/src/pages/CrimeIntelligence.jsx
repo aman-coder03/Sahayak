@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { getCrimeHotspots } from "../services/api";
 import { Spinner, ErrorBanner } from "../components/ui";
 import { useTheme } from "../hooks/useTheme";
@@ -88,7 +88,6 @@ export default function CrimeIntelligence() {
         <div className="flex justify-center py-16"><Spinner /></div>
       ) : (
         <>
-          {/* Summary KPIs */}
           <div className="grid grid-cols-4 gap-3">
             <div className="card p-3 text-center">
               <div className="card-title">Total Complaints</div>
@@ -110,9 +109,7 @@ export default function CrimeIntelligence() {
             </div>
           </div>
 
-          {/* Chart + Grid */}
           <div className="grid grid-cols-3 gap-4">
-            {/* Bar chart */}
             <div className="col-span-2 card p-4">
               <div className="card-title">Complaint Density by City</div>
               <ResponsiveContainer width="100%" height={220}>
@@ -139,7 +136,6 @@ export default function CrimeIntelligence() {
               </ResponsiveContainer>
             </div>
 
-            {/* Type breakdown */}
             <div className="card p-4">
               <div className="card-title">By Crime Type</div>
               <div className="space-y-2.5 mt-2">
@@ -165,7 +161,6 @@ export default function CrimeIntelligence() {
             </div>
           </div>
 
-          {/* City cards */}
           <div>
             <div className="card-title mb-2">Hotspot Intelligence Cards</div>
             <div className="grid grid-cols-5 gap-2">
@@ -197,7 +192,6 @@ export default function CrimeIntelligence() {
             </div>
           </div>
 
-          {/* Selected detail */}
           {selected && (
             <div className="card p-4 border border-brand-border bg-brand-bg animate-slideUp">
               <div className="flex items-center justify-between mb-3">

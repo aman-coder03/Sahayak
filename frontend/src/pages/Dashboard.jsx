@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getDashboardSummary, getCrimeHotspots } from "../services/api";
+import { getDashboardSummary } from "../services/api";
 import { KpiCard, Spinner, ErrorBanner } from "../components/ui";
 import { useTheme } from "../hooks/useTheme";
 import { getChartColors } from "../lib/chartTheme";
@@ -109,7 +109,6 @@ export default function Dashboard() {
 
       {/* Chart + Feed */}
       <div className="grid grid-cols-3 gap-4">
-        {/* Chart */}
         <div className="col-span-2 card p-4">
           <div className="card-title">Fraud Activity — 24h</div>
           <ResponsiveContainer width="100%" height={200}>
@@ -137,7 +136,6 @@ export default function Dashboard() {
           </ResponsiveContainer>
         </div>
 
-        {/* Feed */}
         <div className="card p-4 overflow-hidden flex flex-col">
           <div className="card-title">Threat Activity Feed</div>
           <div className="flex-1 overflow-y-auto space-y-0 divide-y divide-border">
